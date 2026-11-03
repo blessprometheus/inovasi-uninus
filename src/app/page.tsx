@@ -1,11 +1,19 @@
+import { cacheLife, cacheTag } from "next/cache";
 import Link from "next/link";
+import { connection } from "next/server";
+import { Suspense } from "react";
 import { EmptyState, InnovationCard, SearchForm } from "@/components/catalog-ui";
 import { getCatalogProvider } from "@/modules/catalog/providers";
 
-export default async function HomePage() {
-  const { featured, latest, stats } = await getCatalogProvider().home();
-  const hasContent = featured.length > 0 || latest.length > 0;
+async function loadHome() {
+  "use cache";
+  // Tag ini di-invalidate saat inovasi dipublikasikan/ditarik (docs/WORKFLOW.md §6).
+  cacheTag("catalog");
+  cacheLife("minutes");
+  return getCatalogProvider().home();
+}
 
+export default function HomePage() {
   return (
     <main id="konten" className="flex-1">
       <section className="bg-surface">
@@ -26,6 +34,21 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Data katalog dibaca saat request, bukan saat build: build tidak boleh bergantung pada database. */}
+      <Suspense fallback={<HomeSkeleton />}>
+        <HomeContent />
+      </Suspense>
+    </main>
+  );
+}
+
+async function HomeContent() {
+  await connection();
+  const { featured, latest, stats } = await loadHome();
+  const hasContent = featured.length > 0 || latest.length > 0;
+
+  return (
+    <>
       {stats ? (
         <section aria-label="Statistik" className="border-y border-border bg-primary-tint">
           <dl className="mx-auto grid max-w-[1200px] grid-cols-2 gap-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -58,7 +81,19 @@ export default async function HomePage() {
           </EmptyState>
         </section>
       )}
-    </main>
+    </>
+  );
+}
+
+function HomeSkeleton() {
+  return (
+    <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 lg:px-8" aria-hidden="true">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-72 animate-pulse rounded-card bg-border" />
+        ))}
+      </div>
+    </div>
   );
 }
 

@@ -10,9 +10,18 @@ afterEach(() => {
 });
 
 describe("getResearcherProvider", () => {
-  it("kosong secara default", () => {
+  it("kosong bila tidak ada dummy dan tidak ada DATABASE_URL", () => {
     vi.stubEnv("DUMMY_DATA", "");
+    vi.stubEnv("DATABASE_URL", "");
     expect(getResearcherProvider()).toBe(emptyResearcherProvider);
+  });
+
+  it("memakai PostgreSQL bila DATABASE_URL terisi dan dummy mati", () => {
+    vi.stubEnv("DUMMY_DATA", "");
+    vi.stubEnv("DATABASE_URL", "postgres://u:p@localhost:5432/tidak_dipakai");
+    const provider = getResearcherProvider();
+    expect(provider).not.toBe(emptyResearcherProvider);
+    expect(provider).not.toBe(dummyResearcherProvider);
   });
 
   it("dummy hanya bila DUMMY_DATA=1 di luar produksi", () => {
@@ -20,6 +29,7 @@ describe("getResearcherProvider", () => {
     vi.stubEnv("NODE_ENV", "development");
     expect(getResearcherProvider()).toBe(dummyResearcherProvider);
     vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("DATABASE_URL", "");
     expect(getResearcherProvider()).toBe(emptyResearcherProvider);
   });
 });

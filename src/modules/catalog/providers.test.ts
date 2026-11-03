@@ -6,9 +6,18 @@ afterEach(() => {
 });
 
 describe("getCatalogProvider", () => {
-  it("kosong secara default (keadaan awal produksi)", () => {
+  it("kosong bila tidak ada dummy dan tidak ada DATABASE_URL", () => {
     vi.stubEnv("DUMMY_DATA", "");
+    vi.stubEnv("DATABASE_URL", "");
     expect(getCatalogProvider()).toBe(emptyCatalogProvider);
+  });
+
+  it("memakai PostgreSQL bila DATABASE_URL terisi dan dummy mati", () => {
+    vi.stubEnv("DUMMY_DATA", "");
+    vi.stubEnv("DATABASE_URL", "postgres://u:p@localhost:5432/tidak_dipakai");
+    const provider = getCatalogProvider();
+    expect(provider).not.toBe(emptyCatalogProvider);
+    expect(provider).not.toBe(dummyCatalogProvider);
   });
 
   it("memakai data dummy hanya bila DUMMY_DATA=1 di luar produksi", () => {
@@ -20,6 +29,7 @@ describe("getCatalogProvider", () => {
   it("mengabaikan DUMMY_DATA=1 di produksi, dummy tidak pernah tampil sebagai data asli", () => {
     vi.stubEnv("DUMMY_DATA", "1");
     vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("DATABASE_URL", "");
     expect(getCatalogProvider()).toBe(emptyCatalogProvider);
   });
 });

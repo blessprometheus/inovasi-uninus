@@ -1,4 +1,6 @@
 import { dummyCatalogProvider } from "@/modules/catalog/providers";
+import { getDb } from "@/platform/db/client";
+import { createPgResearcherProvider } from "./pg-provider";
 import type { ResearcherDetail, ResearcherItem, ResearcherProvider } from "./types";
 
 /** Keadaan awal produksi: belum ada peneliti terdaftar (D-03). */
@@ -49,10 +51,11 @@ export const dummyResearcherProvider: ResearcherProvider = {
   },
 };
 
-/** Aturan yang sama dengan katalog: dummy tidak pernah aktif di produksi. */
+/** Aturan yang sama dengan katalog: dummy tidak pernah aktif di produksi, lalu PostgreSQL, lalu kosong. */
 export function getResearcherProvider(): ResearcherProvider {
   if (process.env.DUMMY_DATA === "1" && process.env.NODE_ENV !== "production") {
     return dummyResearcherProvider;
   }
+  if (process.env.DATABASE_URL) return createPgResearcherProvider(getDb());
   return emptyResearcherProvider;
 }

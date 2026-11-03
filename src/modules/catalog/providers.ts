@@ -1,3 +1,5 @@
+import { getDb } from "@/platform/db/client";
+import { createPgCatalogProvider } from "./pg-provider";
 import type { CatalogItem, CatalogProvider, CatalogQuery } from "./types";
 
 /** Keadaan awal produksi: belum ada data (D-03). Seluruh UI harus anggun saat kosong. */
@@ -88,12 +90,13 @@ export const dummyCatalogProvider: CatalogProvider = {
 };
 
 /**
- * Data dummy hanya aktif bila DUMMY_DATA=1 DAN bukan produksi. Di produksi, nilai itu diabaikan
- * (docs/AGENTS.md: dummy tidak boleh tampil sebagai data penelitian asli).
+ * Urutan pilihan: dummy (hanya bila DUMMY_DATA=1 DAN bukan produksi; di produksi nilai itu diabaikan,
+ * AGENTS.md §7) -> PostgreSQL bila DATABASE_URL terisi -> kosong (keadaan sebelum database disiapkan).
  */
 export function getCatalogProvider(): CatalogProvider {
   if (process.env.DUMMY_DATA === "1" && process.env.NODE_ENV !== "production") {
     return dummyCatalogProvider;
   }
+  if (process.env.DATABASE_URL) return createPgCatalogProvider(getDb());
   return emptyCatalogProvider;
 }
