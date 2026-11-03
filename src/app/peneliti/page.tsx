@@ -1,0 +1,125 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Suspense } from "react";
+import { EmptyState, SearchForm } from "@/components/catalog-ui";
+import { ResearcherCard } from "@/components/researcher-ui";
+import { getResearcherProvider } from "@/modules/researchers/providers";
+import { parseListParams } from "@/platform/http/list-params";
+
+export const metadata: Metadata = {
+  title: "Direktori Peneliti",
+  description: "Peneliti dan dosen Universitas Islam Nusantara beserta inovasi yang mereka hasilkan.",
+};
+
+const PER_PAGE = 12;
+
+export default function ResearchersPage({ searchParams }: PageProps<"/peneliti">) {
+  return (
+    <main id="konten" className="flex-1">
+      <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8">
+        <h1 className="text-balance text-3xl font-bold sm:text-4xl">Direktori Peneliti</h1>
+        {/* searchParams adalah data runtime: harus dibaca di dalam batas Suspense (Cache Components). */}
+        <Suspense fallback={<ResultsSkeleton />}>
+          <Results searchParams={searchParams} />
+        </Suspense>
+      </div>
+    </main>
+  );
+}
+
+async function Results({ searchParams }: { searchParams: PageProps<"/peneliti">["searchParams"] }) {
+  const { q, page } = parseListParams(await searchParams);
+  const { items, total } = await getResearcherProvider().search({ q, page, perPage: PER_PAGE });
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+  return (
+    <>
+      <div className="mt-6 max-w-2xl">
+        <SearchForm defaultValue={q} action="/peneliti" label="Cari nama peneliti" />
+      </div>
+
+      <p className="mt-6 text-sm font-medium text-muted-foreground" aria-live="polite">
+        {total > 0 ? `${total} peneliti ditemukan${q ? ` untuk "${q}"` : ""}` : null}
+      </p>
+
+      {items.length === 0 ? (
+        <div className="mt-4">
+          {q ? (
+            <EmptyState
+              title="Tidak ada hasil"
+              action={
+                <Link
+                  href="/peneliti"
+                  className="inline-flex min-h-11 items-center rounded-control border border-border-input px-5 font-semibold hover:bg-primary-tint"
+                >
+                  Reset pencarian
+                </Link>
+              }
+            >
+              Tidak ada peneliti yang cocok dengan &ldquo;{q}&rdquo;. Periksa ejaan nama.
+            </EmptyState>
+          ) : (
+            <EmptyState title="Direktori sedang disiapkan">
+              Profil peneliti akan tampil di sini setelah dosen mengisi profilnya. Silakan kembali
+              lagi nanti.
+            </EmptyState>
+          )}
+        </div>
+      ) : (
+        <>
+          <ul className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((item) => (
+              <li key={item.slug} className="flex">
+                <ResearcherCard item={item} />
+              </li>
+            ))}
+          </ul>
+          {totalPages > 1 ? (
+            <nav aria-label="Halaman hasil" className="mt-10 flex items-center justify-center gap-4">
+              {page > 1 ? (
+                <PageLink q={q} page={page - 1}>
+                  Sebelumnya
+                </PageLink>
+              ) : null}
+              <span className="text-sm font-medium text-muted-foreground">
+                Halaman {page} dari {totalPages}
+              </span>
+              {page < totalPages ? (
+                <PageLink q={q} page={page + 1}>
+                  Berikutnya
+                </PageLink>
+              ) : null}
+            </nav>
+          ) : null}
+        </>
+      )}
+    </>
+  );
+}
+
+function PageLink({ q, page, children }: { q?: string; page: number; children: string }) {
+  const qs = new URLSearchParams();
+  if (q) qs.set("q", q);
+  qs.set("page", String(page));
+  return (
+    <Link
+      href={`/peneliti?${qs.toString()}`}
+      className="inline-flex min-h-11 items-center rounded-control border border-border-input px-5 font-semibold hover:bg-primary-tint"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function ResultsSkeleton() {
+  return (
+    <div className="mt-6" aria-hidden="true">
+      <div className="h-11 max-w-2xl animate-pulse rounded-control bg-border" />
+      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-28 animate-pulse rounded-card bg-border" />
+        ))}
+      </div>
+    </div>
+  );
+}

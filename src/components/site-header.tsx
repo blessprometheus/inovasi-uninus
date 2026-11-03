@@ -2,7 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 
 /** Hanya tautan ke halaman yang sudah ada. Tambahkan menu baru bersamaan dengan halamannya. */
-const NAV = [{ href: "/inovasi", label: "Inovasi" }] as const;
+const NAV = [
+  { href: "/inovasi", label: "Inovasi" },
+  { href: "/peneliti", label: "Peneliti" },
+] as const;
 
 export function SiteHeader() {
   return (

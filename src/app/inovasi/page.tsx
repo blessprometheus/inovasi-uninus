@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { EmptyState, InnovationCard, SearchForm } from "@/components/catalog-ui";
 import { getCatalogProvider } from "@/modules/catalog/providers";
+import { parseListParams } from "@/platform/http/list-params";
 
 export const metadata: Metadata = {
   title: "Katalog Inovasi",
@@ -25,15 +26,8 @@ export default function CatalogPage({ searchParams }: PageProps<"/inovasi">) {
   );
 }
 
-function pickFirst(v: string | string[] | undefined): string | undefined {
-  return Array.isArray(v) ? v[0] : v;
-}
-
 async function Results({ searchParams }: { searchParams: PageProps<"/inovasi">["searchParams"] }) {
-  const params = await searchParams;
-  const q = pickFirst(params.q)?.trim().slice(0, 100) || undefined;
-  const requestedPage = Number.parseInt(pickFirst(params.page) ?? "1", 10);
-  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const { q, page } = parseListParams(await searchParams);
 
   const { items, total } = await getCatalogProvider().search({ q, page, perPage: PER_PAGE });
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));

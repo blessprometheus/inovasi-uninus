@@ -71,14 +71,18 @@ export function EmptyState({
 export function SearchForm({
   defaultValue,
   size = "default",
+  action = "/inovasi",
+  label = "Cari inovasi",
 }: {
   defaultValue?: string;
   size?: "default" | "large";
+  action?: string;
+  label?: string;
 }) {
   return (
-    <form action="/inovasi" method="get" role="search" className="flex w-full gap-2">
+    <form action={action} method="get" role="search" className="flex w-full gap-2">
       <label htmlFor="q" className="sr-only">
-        Cari inovasi
+        {label}
       </label>
       <input
         id="q"
@@ -86,7 +90,7 @@ export function SearchForm({
         type="search"
         defaultValue={defaultValue}
         maxLength={100}
-        placeholder="Cari inovasi"
+        placeholder={label}
         className={`min-w-0 flex-1 rounded-control border border-border-input bg-surface px-4 text-base placeholder:text-muted-foreground ${
           size === "large" ? "h-14" : "h-11"
         }`}
