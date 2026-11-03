@@ -5,6 +5,7 @@ import Link from "next/link";
 const NAV = [
   { href: "/inovasi", label: "Inovasi" },
   { href: "/peneliti", label: "Peneliti" },
+  { href: "/tentang", label: "Tentang" },
 ] as const;
 
 export function SiteHeader() {

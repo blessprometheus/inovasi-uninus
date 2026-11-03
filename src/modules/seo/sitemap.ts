@@ -22,6 +22,7 @@ export function buildSitemap(
     entry("/"),
     entry("/inovasi"),
     entry("/peneliti"),
+    entry("/tentang"),
     ...innovations.map((e) => entry(`/inovasi/${e.slug}`, e)),
     ...researchers.map((e) => entry(`/peneliti/${e.slug}`, e)),
   ];

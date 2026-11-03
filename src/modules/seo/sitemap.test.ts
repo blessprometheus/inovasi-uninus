@@ -6,7 +6,12 @@ const BASE = "https://inovasi.uninus.ac.id";
 describe("buildSitemap", () => {
   it("tanpa data hanya memuat halaman statis tanpa lastModified", () => {
     const map = buildSitemap(BASE, [], []);
-    expect(map.map((e) => e.url)).toEqual([`${BASE}/`, `${BASE}/inovasi`, `${BASE}/peneliti`]);
+    expect(map.map((e) => e.url)).toEqual([
+      `${BASE}/`,
+      `${BASE}/inovasi`,
+      `${BASE}/peneliti`,
+      `${BASE}/tentang`,
+    ]);
     for (const e of map) expect(e).not.toHaveProperty("lastModified");
   });
 
