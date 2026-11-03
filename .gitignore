@@ -23,3 +23,8 @@ opencode/
 Thumbs.db
 *.log
 .claude/settings.local.json
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+*.pem

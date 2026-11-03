@@ -139,3 +139,13 @@ Tanpa alasan kuat dan persetujuan eksplisit pengguna, dilarang:
 - Melakukan deployment atau menyentuh server produksi.
 - Menambah fitur di luar kebutuhan yang telah disepakati.
 - Mengirim data proyek ke layanan eksternal.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## Next.js di proyek ini bukan Next.js yang Anda hafal
+
+Versi ini (16.x) punya perubahan API dan konvensi. Baca panduan terkait di `node_modules/next/dist/docs/` sebelum menulis kode Next.js, dan perhatikan peringatan deprecation. `cacheComponents` aktif: akses data runtime (cookies, headers) harus di dalam batas `Suspense`, dan cache memakai `use cache` + `cacheTag`.
+
+Blok ini dibuat dan ditambahkan kembali oleh `next dev`; biarkan tetap ada di commit supaya pohon kerja bersih.
+
+<!-- END:nextjs-agent-rules -->

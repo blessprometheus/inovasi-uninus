@@ -52,6 +52,13 @@ File di sistem file server di luar web root, dilayani lewat izin aplikasi, denga
 
 Tidak ada editor rich-text/HTML di MVP. Mengurangi permukaan XSS dan kompleksitas sanitasi. Dapat dievaluasi ulang (mis. Markdown terbatas) bila ada kebutuhan.
 
+## ADR-007 — Versi Next.js 16 dengan Cache Components (Disetujui 2026-11-03)
+
+- **Konteks:** `create-next-app` terbaru memasang Next.js 16.4.4 dengan `cacheComponents` dan `partialPrefetching` aktif (default framework, akan menjadi standar di versi mayor berikutnya).
+- **Keputusan:** mengikuti default. Cocok dengan rencana cache berbasis tag (`use cache` + `cacheTag`) di `SYSTEM_ARCHITECTURE.md` §6. Konsekuensi: akses data runtime (cookies/session) harus di dalam batas `Suspense`.
+- **Tambahan:** `output: 'standalone'`. Build awal menghasilkan ±1.450 file di `.next/standalone` (acuan pemantauan inode, lihat `DEPLOYMENT.md`).
+- **Peringatan agent:** versi ini berbeda dari pengetahuan umum. Baca `node_modules/next/dist/docs/` sebelum menulis kode Next.js (tercatat di `AGENTS.md`).
+
 ## Open Questions
 
 - **OQ-01 (kritis):** Kapasitas server. Screenshot aaPanel (2026-11-03): load average 7,11/7,75/7,73 pada 4 core ("High"), **inode 100%**, `/www/backup` 0 GB (belum ada backup), peringatan kerentanan PHP belum ditangani. Perlu ditelusuri sebelum deployment: proses apa yang memakai CPU dan inode terbanyak, dan bagaimana rencana backup.

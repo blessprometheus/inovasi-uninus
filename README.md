@@ -2,7 +2,7 @@
 
 Katalog digital hasil penelitian dan inovasi dosen Universitas Islam Nusantara. Domain target: `inovasi.uninus.ac.id`.
 
-**Status:** Fase 0–4 (analisis, dokumentasi, arsitektur, desain) disetujui. Belum ada kode aplikasi. Fase 5 (Development) dimulai setelah repositori GitHub dibuat.
+**Status:** Fase 0–4 disetujui. Fase 5 (Development) berjalan: setup proyek Next.js selesai, berikutnya database dan autentikasi.
 
 ## Mulai dari sini
 
@@ -25,3 +25,16 @@ Dokumen `docs/TESTING.md` dibuat di awal Fase 5.
 ## Stack (disetujui)
 
 Next.js (App Router) + TypeScript, Tailwind CSS + shadcn/ui, PostgreSQL + Drizzle ORM, login lewat SSO UNINUS (OIDC).
+
+## Menjalankan secara lokal
+
+Prasyarat: Node.js 24 (LTS terbaru) dan npm.
+
+```bash
+npm ci
+cp .env.example .env.local
+npm run dev        # http://localhost:3000
+npm run lint
+npm run typecheck
+npm run build
+```
