@@ -24,9 +24,9 @@ Tes integrasi memakai PostgreSQL **asli**, bukan mock, supaya constraint, indeks
 | Area | Tes | Jenis |
 |---|---|---|
 | State machine workflow | Matriks lengkap setiap pasangan status × aktor, pemisahan tugas, catatan wajib, penguncian edit, visibilitas publik | Unit (9 tes) |
-| Otorisasi inovasi | Tanpa sesi dan orang lain selalu NOT_FOUND, pemilik dibatasi status, operator, anggota tim hanya baca, role dicabut | Unit (11 tes) |
+| Otorisasi inovasi | Tanpa sesi dan orang lain selalu NOT_FOUND, pemilik dibatasi status, operator, anggota tim hanya baca, role dicabut | Unit (13 tes) |
 | Slug | Normalisasi, karakter berbahaya/path traversal, batas panjang, keunikan | Unit (10 tes) |
-| Token sesi dan CSRF | Token acak dan hash, masa berlaku idle/absolut, cek Origin, token CSRF terikat sesi | Unit (11 tes) |
+| Token sesi dan CSRF | Token acak dan hash, masa berlaku idle/absolut, cek Origin, token CSRF terikat sesi | Unit (9 tes) |
 | Skema database | Email huruf kecil dan unik, slug unik, batas tahun, satu ketua per inovasi, satu sampul per inovasi, sumber berkas sesuai jenis, tautan hanya http/https, cascade hapus, pencarian teks dan trigram | Integrasi |
 | Seed RBAC | Sesuai `USER_ROLES.md`, pemisahan hak role, idempotent | Integrasi |
 
