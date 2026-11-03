@@ -1,0 +1,25 @@
+# Dependensi dan build
+node_modules/
+.next/
+out/
+dist/
+coverage/
+
+# Rahasia dan lingkungan (jangan pernah di-commit)
+.env
+.env.*
+!.env.example
+
+# Upload dan data lokal
+storage/
+*.sql
+*.dump
+
+# Tooling bawaan lokal (bukan bagian aplikasi)
+opencode/
+
+# Lain-lain
+.DS_Store
+Thumbs.db
+*.log
+.claude/settings.local.json
