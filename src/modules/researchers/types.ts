@@ -28,4 +28,6 @@ export interface ResearcherProvider {
   search(query: ResearcherQuery): Promise<{ items: ResearcherItem[]; total: number }>;
   /** null bila tidak ada atau profilnya tidak publik. */
   getBySlug(slug: string): Promise<ResearcherDetail | null>;
+  /** Seluruh peneliti publik untuk sitemap. updatedAt dalam ISO 8601. */
+  listSlugs(): Promise<{ slug: string; updatedAt: string }[]>;
 }

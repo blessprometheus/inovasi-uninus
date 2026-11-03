@@ -9,6 +9,9 @@ export const emptyResearcherProvider: ResearcherProvider = {
   async getBySlug() {
     return null;
   },
+  async listSlugs() {
+    return [];
+  },
 };
 
 const DUMMY_RESEARCHERS: ResearcherItem[] = Array.from({ length: 14 }, (_, i) => ({
@@ -40,6 +43,9 @@ export const dummyResearcherProvider: ResearcherProvider = {
       externalLinks: [{ label: "[DUMMY] Profil eksternal", url: "https://example.com/" }],
       innovations: items,
     };
+  },
+  async listSlugs() {
+    return DUMMY_RESEARCHERS.map((r) => ({ slug: r.slug, updatedAt: "2024-01-15T00:00:00.000Z" }));
   },
 };
 

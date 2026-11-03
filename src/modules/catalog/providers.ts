@@ -11,6 +11,9 @@ export const emptyCatalogProvider: CatalogProvider = {
   async getBySlug() {
     return null;
   },
+  async listSlugs() {
+    return [];
+  },
 };
 
 const DUMMY_ITEMS: CatalogItem[] = Array.from({ length: 14 }, (_, i) => ({
@@ -78,6 +81,9 @@ export const dummyCatalogProvider: CatalogProvider = {
         : [],
       publishedAt: "2024-01-15T00:00:00.000Z",
     };
+  },
+  async listSlugs() {
+    return DUMMY_ITEMS.map((it) => ({ slug: it.slug, updatedAt: "2024-01-15T00:00:00.000Z" }));
   },
 };
 

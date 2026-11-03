@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { getSiteUrl } from "@/platform/config/site";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -13,7 +14,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   // Basis URL untuk canonical dan Open Graph absolut; diisi dari APP_URL (.env.example).
-  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(getSiteUrl()),
   title: {
     default: "Inovasi UNINUS",
     template: "%s | Inovasi UNINUS",

@@ -74,4 +74,6 @@ export interface CatalogProvider {
   home(): Promise<HomeData>;
   /** null bila slug tidak ada atau inovasinya belum/tidak lagi published. */
   getBySlug(slug: string): Promise<CatalogDetail | null>;
+  /** Seluruh inovasi published untuk sitemap. updatedAt dalam ISO 8601. */
+  listSlugs(): Promise<{ slug: string; updatedAt: string }[]>;
 }

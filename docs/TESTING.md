@@ -31,6 +31,8 @@ Tes integrasi memakai PostgreSQL **asli**, bukan mock, supaya constraint, indeks
 | Validasi kolaborasi dan format respons API | Persetujuan wajib, normalisasi email, telepon, honeypot, detail galat tanpa nilai input, pemetaan status HTTP | Unit (10 tes) |
 | Provider katalog | Dummy hanya dengan DUMMY_DATA=1 dan tidak pernah di produksi, teks dummy berawalan [DUMMY], paginasi, detail per slug (`getBySlug`) | Unit (8 tes) |
 | Provider peneliti | Dummy hanya dengan DUMMY_DATA=1 dan tidak di produksi, tanpa NIDN/NIP di data publik, tautan eksternal hanya http/https, pencarian dan paginasi | Unit (6 tes) |
+| Konfigurasi situs (`APP_URL`, `APP_ENV`) | URL dasar dinormalkan dan menolak skema non-http(s); hanya `APP_ENV=production` yang boleh diindeks | Unit (3 tes) |
+| Sitemap | Hanya halaman statis bila kosong, URL inovasi/peneliti dengan lastModified dari data, tidak pernah memuat rute admin/dosen/api | Unit (3 tes) |
 | Parameter daftar (`?q=&page=`) | Default, pemangkasan q, nilai berulang, halaman tidak valid dan batas atas | Unit (4 tes) |
 | Skema database | Email huruf kecil dan unik, slug unik, batas tahun, satu ketua per inovasi, satu sampul per inovasi, sumber berkas sesuai jenis, tautan hanya http/https, cascade hapus, pencarian teks dan trigram | Integrasi |
 | Seed RBAC | Sesuai `USER_ROLES.md`, pemisahan hak role, idempotent | Integrasi |
