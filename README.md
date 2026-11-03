@@ -2,7 +2,7 @@
 
 Katalog digital hasil penelitian dan inovasi dosen Universitas Islam Nusantara. Domain target: `inovasi.uninus.ac.id`.
 
-**Status:** Fase 0–4 disetujui. Fase 5 (Development) berjalan: setup proyek Next.js selesai, berikutnya database dan autentikasi.
+**Status:** Fase 0–4 disetujui. Fase 5 (Development) berjalan: setup proyek selesai, skema database dan migrasi sedang diverifikasi, berikutnya autentikasi.
 
 ## Mulai dari sini
 
@@ -20,7 +20,7 @@ Katalog digital hasil penelitian dan inovasi dosen Universitas Islam Nusantara. 
 | [docs/SECURITY.md](docs/SECURITY.md) | Keamanan |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Deployment |
 
-Dokumen `docs/TESTING.md` dibuat di awal Fase 5.
+| [docs/TESTING.md](docs/TESTING.md) | Strategi dan cakupan tes |
 
 ## Stack (disetujui)
 
@@ -37,4 +37,16 @@ npm run dev        # http://localhost:3000
 npm run lint
 npm run typecheck
 npm run build
+npm test           # tes unit
+```
+
+### Database (PostgreSQL)
+
+Butuh dua database lokal: `inovasi_dev` dan `inovasi_test` (lihat [docs/TESTING.md](docs/TESTING.md)).
+
+```bash
+npm run db:migrate         # terapkan migrasi ke DATABASE_URL
+npm run db:seed            # isi roles dan permissions (aman diulang)
+npm run test:integration   # tes dengan PostgreSQL asli (DATABASE_URL_TEST)
+npm run db:generate        # buat migrasi baru setelah mengubah skema
 ```
