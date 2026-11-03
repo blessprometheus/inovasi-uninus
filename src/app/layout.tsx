@@ -12,6 +12,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  // Basis URL untuk canonical dan Open Graph absolut; diisi dari APP_URL (.env.example).
+  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
   title: {
     default: "Inovasi UNINUS",
     template: "%s | Inovasi UNINUS",

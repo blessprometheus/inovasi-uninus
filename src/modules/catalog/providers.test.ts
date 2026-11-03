@@ -39,6 +39,27 @@ describe("provider katalog", () => {
     }
   });
 
+  it("provider kosong tidak pernah menemukan slug apa pun", async () => {
+    expect(await emptyCatalogProvider.getBySlug("dummy-inovasi-1")).toBeNull();
+  });
+
+  it("detail dummy: slug dikenal ditemukan, tidak dikenal null, semua teks berawalan [DUMMY]", async () => {
+    expect(await dummyCatalogProvider.getBySlug("tidak-ada")).toBeNull();
+    const d = await dummyCatalogProvider.getBySlug("dummy-inovasi-1");
+    expect(d).not.toBeNull();
+    const texts = [
+      d?.title,
+      d?.abstract,
+      d?.background,
+      d?.objective,
+      d?.description,
+      d?.benefits,
+      ...(d?.members.map((m) => m.name) ?? []),
+      ...(d?.publications.map((p) => p.title) ?? []),
+    ].filter(Boolean) as string[];
+    for (const t of texts) expect(t.startsWith("[DUMMY]")).toBe(true);
+  });
+
   it("paginasi dan pencarian dummy bekerja", async () => {
     const p1 = await dummyCatalogProvider.search({ page: 1, perPage: 12 });
     const p2 = await dummyCatalogProvider.search({ page: 2, perPage: 12 });

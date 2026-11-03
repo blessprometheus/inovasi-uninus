@@ -77,3 +77,4 @@ Tidak ada editor rich-text/HTML di MVP. Mengurangi permukaan XSS dan kompleksita
 - **OQ-14:** Layanan email (SMTP) yang tersedia untuk notifikasi dan formulir kolaborasi, dan alamat pengirim resmi.
 - **OQ-15:** Perlu staging di server yang sama (menambah beban) atau cukup lokal + produksi?
 - **OQ-16:** Batas ukuran upload final dan estimasi volume (lihat OQ-06). Usulan awal: gambar 5 MB, PDF 20 MB.
+- **OQ-17:** Slug yang tidak ada di `/inovasi/{slug}` saat ini tampil sebagai halaman 404 dengan `noindex`, tetapi status HTTP-nya 200 (soft 404), karena konten dirender dalam `Suspense` sesuai aturan Cache Components Next 16. Untuk 404 sungguhan perlu pengecekan slug di `proxy.ts` (memakai database) atau `generateStaticParams`. Putuskan setelah katalog terhubung ke database.
