@@ -142,10 +142,10 @@ Tanpa alasan kuat dan persetujuan eksplisit pengguna, dilarang:
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-## Next.js di proyek ini bukan Next.js yang Anda hafal
+## This is NOT the Next.js you know
 
-Versi ini (16.x) punya perubahan API dan konvensi. Baca panduan terkait di `node_modules/next/dist/docs/` sebelum menulis kode Next.js, dan perhatikan peringatan deprecation. `cacheComponents` aktif: akses data runtime (cookies, headers) harus di dalam batas `Suspense`, dan cache memakai `use cache` + `cacheTag`.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
-Blok ini dibuat dan ditambahkan kembali oleh `next dev`; biarkan tetap ada di commit supaya pohon kerja bersih.
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->

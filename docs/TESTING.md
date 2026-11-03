@@ -27,6 +27,9 @@ Tes integrasi memakai PostgreSQL **asli**, bukan mock, supaya constraint, indeks
 | Otorisasi inovasi | Tanpa sesi dan orang lain selalu NOT_FOUND, pemilik dibatasi status, operator, anggota tim hanya baca, role dicabut | Unit (13 tes) |
 | Slug | Normalisasi, karakter berbahaya/path traversal, batas panjang, keunikan | Unit (10 tes) |
 | Token sesi dan CSRF | Token acak dan hash, masa berlaku idle/absolut, cek Origin, token CSRF terikat sesi | Unit (9 tes) |
+| Validasi inovasi | Field wajib, trim dan null, penolakan field terlarang (status/slug/pemilik), tahun, UUID, tim peneliti, tautan hanya http/https, kelengkapan pengajuan | Unit (13 tes) |
+| Validasi kolaborasi dan format respons API | Persetujuan wajib, normalisasi email, telepon, honeypot, detail galat tanpa nilai input, pemetaan status HTTP | Unit (10 tes) |
+| Provider katalog | Dummy hanya dengan DUMMY_DATA=1 dan tidak pernah di produksi, teks dummy berawalan [DUMMY], paginasi | Unit (6 tes) |
 | Skema database | Email huruf kecil dan unik, slug unik, batas tahun, satu ketua per inovasi, satu sampul per inovasi, sumber berkas sesuai jenis, tautan hanya http/https, cascade hapus, pencarian teks dan trigram | Integrasi |
 | Seed RBAC | Sesuai `USER_ROLES.md`, pemisahan hak role, idempotent | Integrasi |
 
