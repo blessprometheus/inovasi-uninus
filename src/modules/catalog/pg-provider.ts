@@ -2,9 +2,12 @@ import { type SQL, sql } from "drizzle-orm";
 import type { Database } from "@/platform/db/client";
 import type {
   CatalogDetail,
+  CatalogFacets,
+  CatalogFilters,
   CatalogItem,
   CatalogProvider,
   CatalogQuery,
+  FacetOption,
   HomeData,
 } from "./types";
 
@@ -79,20 +82,86 @@ function searchCondition(q: string): SQL {
   return sql`(i.search_vector @@ websearch_to_tsquery('simple', ${q}) or i.title ilike ${like})`;
 }
 
+/**
+ * Syarat penyaring. Memakai `exists` pada slug (parameter terikat) supaya sama-sama benar di query daftar
+ * maupun query hitung, dan slug yang tidak ada hanya menghasilkan daftar kosong.
+ */
+export function filterConditions(f: CatalogFilters): SQL[] {
+  const conditions: SQL[] = [];
+  if (f.category) {
+    conditions.push(sql`exists (select 1 from innovation_categories ic join categories c on c.id = ic.category_id
+      where ic.innovation_id = i.id and c.slug = ${f.category})`);
+  }
+  if (f.faculty) {
+    conditions.push(sql`exists (select 1 from faculties fa where fa.id = i.faculty_id and fa.slug = ${f.faculty})`);
+  }
+  if (f.studyProgram) {
+    conditions.push(sql`exists (select 1 from study_programs spr where spr.id = i.study_program_id and spr.slug = ${f.studyProgram})`);
+  }
+  if (f.type) {
+    conditions.push(sql`exists (select 1 from innovation_types t where t.id = i.type_id and t.slug = ${f.type})`);
+  }
+  if (f.year !== undefined) conditions.push(sql`i.year = ${f.year}`);
+  if (f.hasIp) conditions.push(sql`exists (select 1 from intellectual_properties p where p.innovation_id = i.id)`);
+  return conditions;
+}
+
 export function createPgCatalogProvider(db: Database): CatalogProvider {
   return {
-    async search({ q, page, perPage }: CatalogQuery) {
-      const extraWhere = q ? searchCondition(q) : undefined;
+    async search(query: CatalogQuery) {
+      const { q, page, perPage } = query;
+      const conditions = [...(q ? [searchCondition(q)] : []), ...filterConditions(query)];
+      const extraWhere = conditions.length ? sql.join(conditions, sql` and `) : undefined;
       const where = extraWhere ? sql`${VISIBLE} and ${extraWhere}` : VISIBLE;
-      const order = q
-        ? sql`ts_rank(i.search_vector, websearch_to_tsquery('simple', ${q})) desc, i.published_at desc, i.id`
-        : sql`i.published_at desc, i.id`;
+      const order =
+        q && query.sort !== "newest"
+          ? sql`ts_rank(i.search_vector, websearch_to_tsquery('simple', ${q})) desc, i.published_at desc, i.id`
+          : sql`i.published_at desc, i.id`;
 
       const [items, count] = await Promise.all([
         fetchCatalogItems(db, { extraWhere, order, limit: perPage, offset: (page - 1) * perPage }),
         db.execute<{ total: string }>(sql`select count(*) as total from innovations i where ${where}`),
       ]);
       return { items, total: Number(count.rows[0]?.total ?? 0) };
+    },
+
+    async facets(): Promise<CatalogFacets> {
+      type OptionRow = { slug: string; name: string; count: string };
+      const option = (r: OptionRow): FacetOption => ({ slug: r.slug, name: r.name, count: Number(r.count) });
+
+      const [categories, faculties, programs, types, years] = await Promise.all([
+        db.execute<OptionRow>(sql`
+          select c.slug, c.name, count(distinct i.id) as count
+          from categories c
+            join innovation_categories ic on ic.category_id = c.id
+            join innovations i on i.id = ic.innovation_id and ${VISIBLE}
+          where c.is_active group by c.id order by c.sort_order, c.name`),
+        db.execute<OptionRow>(sql`
+          select f.slug, f.name, count(*) as count
+          from faculties f join innovations i on i.faculty_id = f.id and ${VISIBLE}
+          where f.is_active group by f.id order by f.name`),
+        db.execute<OptionRow & { faculty_name: string | null }>(sql`
+          select sp.slug, sp.name, fa.name as faculty_name, count(*) as count
+          from study_programs sp
+            join faculties fa on fa.id = sp.faculty_id
+            join innovations i on i.study_program_id = sp.id and ${VISIBLE}
+          where sp.is_active group by sp.id, fa.name order by fa.name, sp.name`),
+        db.execute<OptionRow>(sql`
+          select t.slug, t.name, count(*) as count
+          from innovation_types t join innovations i on i.type_id = t.id and ${VISIBLE}
+          where t.is_active group by t.id order by t.sort_order, t.name`),
+        db.execute<{ year: number; count: string }>(sql`
+          select i.year, count(*) as count from innovations i
+          where ${VISIBLE} and i.year is not null group by i.year order by i.year desc`),
+      ]);
+
+      return {
+        categories: categories.rows.map(option),
+        faculties: faculties.rows.map(option),
+        studyPrograms: programs.rows.map((r) => ({ ...option(r), facultyName: r.faculty_name })),
+        types: types.rows.map(option),
+        years: years.rows.map((r) => ({ year: Number(r.year), count: Number(r.count) })),
+      };
     },
 
     async home(): Promise<HomeData> {

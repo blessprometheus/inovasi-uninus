@@ -4,12 +4,14 @@ import { Suspense } from "react";
 import { EmptyState, SearchForm } from "@/components/catalog-ui";
 import { ResearcherCard } from "@/components/researcher-ui";
 import { getResearcherProvider } from "@/modules/researchers/providers";
+import { pageMetadata } from "@/modules/seo/metadata";
 import { parseListParams } from "@/platform/http/list-params";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Direktori Peneliti",
   description: "Peneliti dan dosen Universitas Islam Nusantara beserta inovasi yang mereka hasilkan.",
-};
+  path: "/peneliti",
+});
 
 const PER_PAGE = 12;
 

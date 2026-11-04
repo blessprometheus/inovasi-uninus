@@ -12,10 +12,41 @@ export interface CatalogItem {
   coverAlt: string | null;
 }
 
-export interface CatalogQuery {
+/** Penyaring katalog. Semua opsional; nilai yang tidak dikenal menghasilkan daftar kosong, bukan galat. */
+export interface CatalogFilters {
+  /** Slug kategori / fakultas / program studi / jenis. */
+  category?: string;
+  faculty?: string;
+  studyProgram?: string;
+  type?: string;
+  year?: number;
+  /** true = hanya yang memiliki HKI/paten. */
+  hasIp?: boolean;
+}
+
+export type CatalogSort = "newest" | "relevance";
+
+export interface CatalogQuery extends CatalogFilters {
   q?: string;
+  /** `relevance` hanya bermakna bila ada `q`; selain itu diperlakukan sebagai `newest`. */
+  sort?: CatalogSort;
   page: number;
   perPage: number;
+}
+
+export interface FacetOption {
+  slug: string;
+  name: string;
+  count: number;
+}
+
+/** Pilihan penyaring yang benar-benar punya inovasi terbit (tidak ada pilihan yang pasti kosong). */
+export interface CatalogFacets {
+  categories: FacetOption[];
+  faculties: FacetOption[];
+  studyPrograms: (FacetOption & { facultyName: string | null })[];
+  types: FacetOption[];
+  years: { year: number; count: number }[];
 }
 
 export interface CatalogPage {
@@ -72,6 +103,8 @@ export interface CatalogDetail extends CatalogItem {
 export interface CatalogProvider {
   search(query: CatalogQuery): Promise<CatalogPage>;
   home(): Promise<HomeData>;
+  /** Opsi penyaring untuk halaman katalog. */
+  facets(): Promise<CatalogFacets>;
   /** null bila slug tidak ada atau inovasinya belum/tidak lagi published. */
   getBySlug(slug: string): Promise<CatalogDetail | null>;
   /** Seluruh inovasi published untuk sitemap. updatedAt dalam ISO 8601. */

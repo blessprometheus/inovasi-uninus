@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { pageMetadata } from "@/modules/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Tentang",
   description:
     "Inovasi UNINUS adalah katalog digital hasil penelitian dan inovasi dosen Universitas Islam Nusantara.",
-  alternates: { canonical: "/tentang" },
-};
+  path: "/tentang",
+});
 
 const STEPS = [
   {

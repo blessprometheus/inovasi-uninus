@@ -1,9 +1,14 @@
+import type { Metadata } from "next";
 import { cacheLife, cacheTag } from "next/cache";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { EmptyState, InnovationCard, SearchForm } from "@/components/catalog-ui";
+import { JsonLd } from "@/components/json-ld";
 import { getCatalogProvider } from "@/modules/catalog/providers";
+import { websiteJsonLd } from "@/modules/seo/json-ld";
+import { pageMetadata } from "@/modules/seo/metadata";
+import { getSiteUrl } from "@/platform/config/site";
 
 async function loadHome() {
   "use cache";
@@ -13,9 +18,17 @@ async function loadHome() {
   return getCatalogProvider().home();
 }
 
+export const metadata: Metadata = pageMetadata({
+  title: "Inovasi UNINUS - Katalog Penelitian dan Inovasi Universitas Islam Nusantara",
+  absoluteTitle: true,
+  description: "Katalog hasil penelitian dan inovasi dosen Universitas Islam Nusantara, terbuka bagi masyarakat, industri, dan pemerintah.",
+  path: "/",
+});
+
 export default function HomePage() {
   return (
     <main id="konten" className="flex-1">
+      <JsonLd data={websiteJsonLd(getSiteUrl())} />
       <section className="bg-surface">
         <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
           <p className="mb-4 inline-block rounded-control bg-accent px-3 py-1 text-sm font-semibold text-on-accent">

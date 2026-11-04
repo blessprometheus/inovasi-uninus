@@ -30,6 +30,7 @@ RBAC berbasis permission (`USER_ROLES.md`). Setiap rute memanggil `authorize()`;
 - Semua input divalidasi schema (Zod) di server; field tak dikenal ditolak.
 - Query database hanya lewat Drizzle/parameter terikat. Dilarang menyusun SQL dari string input.
 - Teks panjang disimpan sebagai **teks biasa**; dirender sebagai teks (React meng-escape). Tidak ada `dangerouslySetInnerHTML` pada konten pengguna.
+  - **Satu-satunya pengecualian** adalah `JsonLd` (data terstruktur schema.org). Isinya JSON yang diserialisasi lewat `serializeJsonLd`, yang meng-escape `<`, `>`, `&`, dan pemisah baris Unicode sehingga judul seperti `</script><script>…` tidak bisa menutup tag skrip. Dijaga tes unit dan diperiksa ulang di HTML server nyata.
 - URL publikasi/video divalidasi `http`/`https` saja, dirender dengan `rel="noopener noreferrer nofollow"`. Video hanya dari daftar domain yang diizinkan, ditentukan kemudian.
 - Slug dibuat dari judul dengan normalisasi, dan dicek unik. Parameter `sort`/`filter` hanya dari daftar putih.
 

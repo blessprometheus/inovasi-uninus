@@ -7,6 +7,9 @@ export const emptyCatalogProvider: CatalogProvider = {
   async search() {
     return { items: [], total: 0 };
   },
+  async facets() {
+    return { categories: [], faculties: [], studyPrograms: [], types: [], years: [] };
+  },
   async home() {
     return { featured: [], latest: [], stats: null };
   },
@@ -34,13 +37,30 @@ const DUMMY_ITEMS: CatalogItem[] = Array.from({ length: 14 }, (_, i) => ({
 
 /** Hanya untuk pengembangan lokal. Semua teksnya berawalan [DUMMY]. */
 export const dummyCatalogProvider: CatalogProvider = {
-  async search({ q, page, perPage }: CatalogQuery) {
+  async search({ q, page, perPage, year, hasIp, category, faculty, studyProgram, type }: CatalogQuery) {
     const needle = q?.trim().toLowerCase();
-    const filtered = needle
-      ? DUMMY_ITEMS.filter((it) => `${it.title} ${it.summary}`.toLowerCase().includes(needle))
-      : DUMMY_ITEMS;
+    // Data contoh hanya punya tahun dan HKI; penyaring berbasis slug taksonomi tidak punya padanan,
+    // jadi dianggap tidak cocok (sama seperti slug yang tidak dikenal di PostgreSQL).
+    if (category || faculty || studyProgram || type) return { items: [], total: 0 };
+    const filtered = DUMMY_ITEMS.filter(
+      (it) =>
+        (!needle || `${it.title} ${it.summary}`.toLowerCase().includes(needle)) &&
+        (year === undefined || it.year === year) &&
+        (!hasIp || it.hasIp),
+    );
     const start = (page - 1) * perPage;
     return { items: filtered.slice(start, start + perPage), total: filtered.length };
+  },
+  async facets() {
+    const counts = new Map<number, number>();
+    for (const it of DUMMY_ITEMS) if (it.year) counts.set(it.year, (counts.get(it.year) ?? 0) + 1);
+    return {
+      categories: [],
+      faculties: [],
+      studyPrograms: [],
+      types: [],
+      years: [...counts].map(([year, count]) => ({ year, count })).sort((a, b) => b.year - a.year),
+    };
   },
   async home() {
     return {

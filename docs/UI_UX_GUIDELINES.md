@@ -209,6 +209,16 @@ Desktop                                          Mobile (375)
 
 Isi `InnovationCard`: cover 16:10, judul (maks 2 baris), kategori utama, ketua peneliti, fakultas, tahun, ringkasan (maks 3 baris), lencana HKI/Paten bila ada. Seluruh kartu satu tautan (area klik besar).
 
+**Catatan implementasi (menyimpang dari wireframe, sengaja):**
+
+| Wireframe | Implementasi | Alasan |
+|---|---|---|
+| Filter berupa kotak centang per nilai | Satu `select` per filter (kategori, fakultas, prodi, tahun, jenis) + kotak centang HKI/paten | Nilai bisa banyak; satu pilihan per jenis cocok dengan query yang ada. Pilihan ganda dalam satu jenis belum didukung |
+| Drawer dari bawah di mobile, tombol "Terapkan (24 hasil)" | Panel dibuka-tutup dengan kontrol CSS murni (kotak centang tersembunyi), tombol "Terapkan filter" | Berfungsi tanpa JavaScript. Jumlah hasil langsung sebelum menerapkan belum ada |
+| Pilihan filter | Hanya pilihan yang punya inovasi terbit, dengan jumlahnya; tidak menyempit mengikuti filter lain | Menghindari pilihan yang pasti kosong tanpa query tambahan per kombinasi |
+| Urutkan: Terbaru | Muncul hanya saat ada kata kunci (Paling relevan / Terbaru); tanpa kata kunci selalu terbaru | "Terpopuler" menunggu statistik kunjungan (FR-18) |
+| Parameter | `?q=&kategori=&fakultas=&prodi=&jenis=&tahun=&hki=1&urut=terbaru&page=` (slug, bukan id) | URL bisa dibagikan dan stabil; nilai yang bentuknya salah diabaikan |
+
 ### 10.3 Detail inovasi `/inovasi/{slug}`
 
 ```

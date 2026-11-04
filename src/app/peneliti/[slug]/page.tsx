@@ -3,6 +3,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { JsonLd } from "@/components/json-ld";
+import { breadcrumbJsonLd, researcherJsonLd } from "@/modules/seo/json-ld";
+import { pageMetadata } from "@/modules/seo/metadata";
+import { getSiteUrl } from "@/platform/config/site";
 import { InnovationCard } from "@/components/catalog-ui";
 import { Avatar } from "@/components/researcher-ui";
 import { getResearcherProvider } from "@/modules/researchers/providers";
@@ -22,11 +26,12 @@ export async function generateMetadata({
   const { slug } = await params;
   const item = await loadResearcher(slug);
   if (!item) return { title: "Peneliti tidak ditemukan" };
-  return {
+  return pageMetadata({
     title: item.fullName,
     description: [item.position, item.facultyName].filter(Boolean).join(" · ") || undefined,
-    alternates: { canonical: `/peneliti/${item.slug}` },
-  };
+    path: `/peneliti/${item.slug}`,
+    type: "profile",
+  });
 }
 
 export default function ResearcherProfilePage({ params }: PageProps<"/peneliti/[slug]">) {
@@ -47,8 +52,18 @@ async function Profile({ params }: Pick<PageProps<"/peneliti/[slug]">, "params">
 
   const meta = [item.position, item.facultyName, item.studyProgramName].filter(Boolean);
 
+  const baseUrl = getSiteUrl();
+
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
+      <JsonLd data={researcherJsonLd(item, baseUrl)} />
+      <JsonLd
+        data={breadcrumbJsonLd(baseUrl, [
+          { name: "Beranda", path: "/" },
+          { name: "Peneliti", path: "/peneliti" },
+          { name: item.fullName, path: `/peneliti/${item.slug}` },
+        ])}
+      />
       <nav aria-label="Navigasi remah roti" className="text-sm font-medium text-muted-foreground">
         <ol className="flex flex-wrap items-center gap-1">
           <li>

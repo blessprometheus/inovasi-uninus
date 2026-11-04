@@ -48,6 +48,8 @@ Hanya mengembalikan data `published`.
 | POST | `/collaboration-requests` | Body: `innovation_id?`, `name`, `email`, `organization`, `phone?`, `message`, `consent`. Honeypot + rate limit ketat. Respons 201 tanpa membocorkan data lain |
 | GET | `/health` | Cek aplikasi dan koneksi database, tanpa detail sensitif |
 
+> **Status implementasi:** halaman `/inovasi` memakai parameter berbahasa Indonesia (`q`, `kategori`, `fakultas`, `prodi`, `jenis`, `tahun`, `hki=1`, `urut=terbaru`, `page`; nilai berupa slug) dan memanggil penyedia data langsung di server. Endpoint JSON publik di tabel di atas (`/innovations`, `/researchers`, `/files/{id}`, `/collaboration-requests`, `/health`) belum dibuat; acuan `/categories`, `/faculties`, `/study-programs`, `/innovation-types` sudah ada.
+
 ## 4. Dosen (`researcher`, juga dipakai operator untuk milik sendiri)
 
 | Metode | Path | Permission | Keterangan |

@@ -3,6 +3,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { JsonLd } from "@/components/json-ld";
+import { breadcrumbJsonLd, innovationJsonLd } from "@/modules/seo/json-ld";
+import { pageMetadata } from "@/modules/seo/metadata";
+import { getSiteUrl } from "@/platform/config/site";
 import { CoverPlaceholder } from "@/components/catalog-ui";
 import { getCatalogProvider } from "@/modules/catalog/providers";
 import type { CatalogDetail } from "@/modules/catalog/types";
@@ -19,11 +23,14 @@ export async function generateMetadata({ params }: PageProps<"/inovasi/[slug]">)
   const { slug } = await params;
   const item = await loadInnovation(slug);
   if (!item) return { title: "Inovasi tidak ditemukan" };
-  return {
+  return pageMetadata({
     title: item.title,
     description: item.summary,
-    alternates: { canonical: `/inovasi/${item.slug}` },
-  };
+    path: `/inovasi/${item.slug}`,
+    type: "article",
+    publishedTime: item.publishedAt,
+    authors: item.members.map((m) => m.name),
+  });
 }
 
 export default function InnovationDetailPage({ params }: PageProps<"/inovasi/[slug]">) {
@@ -62,8 +69,18 @@ async function Detail({ params }: Pick<PageProps<"/inovasi/[slug]">, "params">) 
     { heading: "Potensi Pengembangan", body: item.developmentPotential },
   ];
 
+  const baseUrl = getSiteUrl();
+
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
+      <JsonLd data={innovationJsonLd(item, baseUrl)} />
+      <JsonLd
+        data={breadcrumbJsonLd(baseUrl, [
+          { name: "Beranda", path: "/" },
+          { name: "Inovasi", path: "/inovasi" },
+          { name: item.title, path: `/inovasi/${item.slug}` },
+        ])}
+      />
       <nav aria-label="Navigasi remah roti" className="text-sm font-medium text-muted-foreground">
         <ol className="flex flex-wrap items-center gap-1">
           <li>

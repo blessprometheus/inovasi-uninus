@@ -80,6 +80,7 @@ HTTPS dengan pembaruan sertifikat otomatis, firewall hanya membuka 80/443/SSH (S
 - [ ] Backup + uji restore berhasil
 - [ ] Header keamanan, HTTPS, rate limit terverifikasi
 - [ ] Seluruh tes (unit, integrasi, E2E, otorisasi, aksesibilitas) lulus
+- [ ] Pratinjau berbagi (Open Graph/Twitter) dicek di URL produksi dengan alat validator platform (Facebook Sharing Debugger, validator schema.org). Gambar berbagi masih logo kecil 73x100 (OQ-04); ganti saat logo besar tersedia
 - [ ] Sitemap, robots, metadata diverifikasi di URL produksi (`/robots.txt` harus `Allow: /` dan berisi `Sitemap:`; `/sitemap.xml` memakai domain produksi). Pastikan `APP_ENV=production` dan `APP_URL` terisi di server.
 - [ ] `AUTH_SECRET` terisi; `DEV_LOGIN` **tidak** ada di environment staging/produksi (bila ada, semua request menjawab 500)
 - [ ] Rencana onboarding dosen siap (katalog kosong saat awal)
