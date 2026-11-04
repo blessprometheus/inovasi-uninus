@@ -64,6 +64,15 @@ Hanya mengembalikan data `published`.
 | PATCH/DELETE | `/me/innovations/{id}/files/{fileId}` | `file.manage_own` | Judul, urutan, cover, visibilitas |
 | GET/PATCH | `/me/profile` | `profile.update_own` | Hanya field yang boleh diubah dosen (sisanya dari SSO) |
 
+Catatan perilaku (sudah diimplementasikan untuk rute inovasi, tanpa berkas dan profil):
+
+- `GET /me/innovations` memuat inovasi milik sendiri **dan** yang menyertakan profil peneliti saya sebagai anggota (`isOwner: false`, hanya baca). Query: `status`, `page`, `per_page` (maks. 50). Status tak dikenal: 400.
+- Inovasi orang lain, id yang bukan UUID, dan yang sudah dihapus semuanya 404 (tidak membocorkan keberadaan). Anggota tim yang mencoba mengubah/mengajukan/menghapus juga 404.
+- Edit atau hapus pada status terkunci: 403 `FORBIDDEN`. Ajukan/tarik pada status yang salah: 409 `INVALID_TRANSITION`. Pengajuan yang datanya belum lengkap: 400 `VALIDATION_ERROR` dengan `details` berisi field yang kurang.
+- `POST` tanpa `Content-Type: application/json`: 415. Body di atas 256 KB: 413. Field tak dikenal (mis. `status`, `slug`): 400.
+- `POST /me/innovations` mengisi ketua dengan profil peneliti milik pembuat bila `leadResearcherId` tidak dikirim; `null` eksplisit berarti tanpa ketua. Slug dibuat dari judul dan tidak berubah saat judul diedit (OQ-22).
+- `GET /me/innovations/{id}` memuat `revisionNote` (catatan operator terakhir) saat status `revision_required`.
+
 ## 5. Admin (`operator`, `super_admin`)
 
 | Metode | Path | Permission | Keterangan |

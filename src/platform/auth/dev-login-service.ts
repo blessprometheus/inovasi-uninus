@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import type { RoleCode } from "@/modules/auth/permissions";
 import type { Database } from "@/platform/db/client";
-import { roles, userRoles, users } from "@/platform/db/schema";
+import { researchers, roles, userRoles, users } from "@/platform/db/schema";
 
 export class DevLoginError extends Error {}
 
@@ -28,6 +28,13 @@ export async function ensureDevUser(
     .from(userRoles)
     .where(and(eq(userRoles.userId, user.id), eq(userRoles.roleId, role.id)));
   if (!granted) await db.insert(userRoles).values({ userId: user.id, roleId: role.id });
+
+  // Profil peneliti nyata nanti dibuat dari klaim SSO. Untuk dev dibuat tertutup (tidak tampil di /peneliti)
+  // supaya form inovasi punya ketua default tanpa mengotori direktori publik.
+  await db
+    .insert(researchers)
+    .values({ userId: user.id, slug: `dev-${user.id}`, fullName: input.name, isPublic: false })
+    .onConflictDoNothing({ target: researchers.userId });
 
   return user;
 }

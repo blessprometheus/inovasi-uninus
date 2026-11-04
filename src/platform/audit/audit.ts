@@ -13,7 +13,7 @@ export interface AuditEntry {
 }
 
 /** Tabel audit_logs append-only (docs/SECURITY.md §7). Hanya ada insert, tidak ada update/delete. */
-export async function recordAudit(db: Database, entry: AuditEntry): Promise<void> {
+export async function recordAudit(db: Pick<Database, "insert">, entry: AuditEntry): Promise<void> {
   await db.insert(auditLogs).values({
     actorId: entry.actorId,
     action: entry.action,

@@ -50,6 +50,25 @@ export function createAuthHandlers(deps: AuthDeps) {
     /** Dipakai juga oleh handler lain (dashboard) untuk memuat sesi dari request. */
     currentSession,
 
+    /**
+     * Gerbang rute yang butuh login. Untuk metode pengubah data, Origin dan token CSRF wajib
+     * (docs/API_DOCUMENTATION.md §2). Mengembalikan sesi, atau Response penolakan siap kirim.
+     */
+    async authenticate(
+      request: Request,
+      options: { mutation?: boolean } = {},
+    ): Promise<{ session: ActiveSession } | { response: Response }> {
+      if (options.mutation && !isAllowedOrigin(request.headers.get("origin"), appUrl)) {
+        return { response: FORBIDDEN_ORIGIN() };
+      }
+      const session = await currentSession(request);
+      if (!session) return { response: UNAUTHENTICATED() };
+      if (options.mutation && !verifyCsrfToken(request.headers.get("x-csrf-token"), session.sessionId, secret)) {
+        return { response: json(fail("FORBIDDEN", "Token keamanan tidak valid. Muat ulang halaman.")) };
+      }
+      return { session };
+    },
+
     async me(request: Request): Promise<Response> {
       const session = await currentSession(request);
       if (!session) return UNAUTHENTICATED();
