@@ -43,6 +43,10 @@ export function getInnovationHandlers(): InnovationHandlers {
   return cachedInnovations;
 }
 
+/** Layanan admin untuk Server Component (hook penyegaran cache dipasang agar konsisten dengan rute API). */
+export const getAdminInnovationService = () =>
+  createAdminInnovationService(getDb(), createInnovationService(getDb()), { onPublicChange: refreshPublicCache });
+
 let cachedAdmin: AdminInnovationHandlers | undefined;
 
 /** Handler `/api/v1/admin/innovations`. */

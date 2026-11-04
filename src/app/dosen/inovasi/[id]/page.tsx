@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Breadcrumb } from "@/components/breadcrumb";
+import { InnovationReadonly } from "@/components/innovation-readonly";
 import { StatusBadge } from "@/components/status-badge";
 import { toAuthUser } from "@/modules/auth/auth-user";
 import { isOwnerEditable } from "@/modules/workflow/transitions";
@@ -30,20 +31,6 @@ export default function InnovationDetailPage({ params }: PageProps<"/dosen/inova
   );
 }
 
-const LONG_TEXTS = [
-  ["abstract", "Abstrak"],
-  ["background", "Latar belakang"],
-  ["problemStatement", "Rumusan masalah"],
-  ["objective", "Tujuan"],
-  ["methodology", "Metodologi"],
-  ["description", "Deskripsi inovasi"],
-  ["advantages", "Keunggulan"],
-  ["benefits", "Manfaat"],
-  ["developmentPotential", "Potensi pengembangan"],
-] as const;
-
-const IP_KIND = { hki: "HKI", paten: "Paten", lainnya: "Lainnya" } as const;
-
 async function DetailContent({ params }: { params: PageProps<"/dosen/inovasi/[id]">["params"] }) {
   const { id } = await params;
   const session = await requireSession(`/dosen/inovasi/${id}`);
@@ -58,21 +45,6 @@ async function DetailContent({ params }: { params: PageProps<"/dosen/inovasi/[id
   const refs = await loadFormRefs();
   const ids = [...(inv.leadResearcherId ? [inv.leadResearcherId] : []), ...inv.memberResearcherIds];
   const people = new Map((await getResearcherLookup().byIds(ids)).map((p) => [p.id, p.fullName]));
-  const lookupName = (list: { id: string; name: string }[], value: string | null) =>
-    list.find((x) => x.id === value)?.name ?? null;
-
-  const facts: [string, string | null][] = [
-    ["Kategori", inv.categoryIds.map((c) => lookupName(refs.categories, c)).filter(Boolean).join(", ") || null],
-    ["Jenis", lookupName(refs.types, inv.typeId)],
-    ["Tahun", inv.year?.toString() ?? null],
-    ["Fakultas", lookupName(refs.faculties, inv.facultyId)],
-    ["Program studi", lookupName(refs.studyPrograms, inv.studyProgramId)],
-    ["Ketua peneliti", inv.leadResearcherId ? (people.get(inv.leadResearcherId) ?? null) : null],
-    [
-      "Anggota tim",
-      inv.memberResearcherIds.map((m) => people.get(m)).filter(Boolean).join(", ") || null,
-    ],
-  ];
 
   const canEdit = inv.isOwner && isOwnerEditable(inv.status);
 
@@ -120,71 +92,7 @@ async function DetailContent({ params }: { params: PageProps<"/dosen/inovasi/[id
         </p>
       ) : null}
 
-      <section aria-labelledby="ringkasan" className="mt-8 rounded-card border border-border bg-surface p-5 sm:p-6">
-        <h2 id="ringkasan" className="text-xl font-semibold">
-          Ringkasan
-        </h2>
-        <p className="mt-2 whitespace-pre-line">{inv.summary}</p>
-        <dl className="mt-5 grid gap-x-8 gap-y-3 sm:grid-cols-2">
-          {facts
-            .filter(([, value]) => value)
-            .map(([label, value]) => (
-              <div key={label}>
-                <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
-                <dd className="font-medium">{value}</dd>
-              </div>
-            ))}
-        </dl>
-      </section>
-
-      {LONG_TEXTS.filter(([key]) => inv[key]).map(([key, label]) => (
-        <section key={key} aria-labelledby={`t-${key}`} className="mt-6 rounded-card border border-border bg-surface p-5 sm:p-6">
-          <h2 id={`t-${key}`} className="text-xl font-semibold">
-            {label}
-          </h2>
-          <p className="mt-2 whitespace-pre-line">{inv[key]}</p>
-        </section>
-      ))}
-
-      {inv.publications.length > 0 ? (
-        <section aria-labelledby="publikasi" className="mt-6 rounded-card border border-border bg-surface p-5 sm:p-6">
-          <h2 id="publikasi" className="text-xl font-semibold">
-            Publikasi
-          </h2>
-          <ul className="mt-3 list-disc space-y-2 pl-5">
-            {inv.publications.map((p, i) => (
-              <li key={i}>
-                {p.url ? (
-                  <a href={p.url} target="_blank" rel="noopener noreferrer nofollow" className="font-semibold text-primary hover:underline">
-                    {p.title}
-                  </a>
-                ) : (
-                  <span className="font-semibold">{p.title}</span>
-                )}
-                <span className="text-muted-foreground">
-                  {[p.venue, p.year, p.doi ? `DOI ${p.doi}` : null].filter(Boolean).map((x) => ` · ${x}`).join("")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {inv.intellectualProperties.length > 0 ? (
-        <section aria-labelledby="hki" className="mt-6 rounded-card border border-border bg-surface p-5 sm:p-6">
-          <h2 id="hki" className="text-xl font-semibold">
-            HKI / Paten
-          </h2>
-          <ul className="mt-3 list-disc space-y-1 pl-5">
-            {inv.intellectualProperties.map((p, i) => (
-              <li key={i}>
-                <span className="font-semibold">{IP_KIND[p.kind]}</span>
-                {[p.status, p.registrationNumber, p.year, p.notes].filter(Boolean).map((x) => ` · ${x}`).join("")}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <InnovationReadonly inv={inv} refs={refs} people={people} />
 
       {history.ok ? (
         <section aria-labelledby="riwayat" className="mt-6 rounded-card border border-border bg-surface p-5 sm:p-6">

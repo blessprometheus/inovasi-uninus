@@ -223,6 +223,18 @@ describe("daftar, ubah, hapus oleh operator", () => {
     expect(ok(await admin().list(op.actor, { page: 2, perPage: 2 })).items).toHaveLength(1);
   });
 
+  it("ringkasan jumlah per status mencakup semua pengaju dan mengabaikan yang terhapus", async () => {
+    const op = await makeActor("operator");
+    const a = await submitted(await makeActor(), "[DUMMY] Satu");
+    await submitted(await makeActor(), "[DUMMY] Dua");
+    const c = await submitted(await makeActor(), "[DUMMY] Tiga");
+    ok(await go(op.actor, c.id, "under_review"));
+    ok(await admin().remove(op.actor, a.id, { reason: "[DUMMY] duplikat" }));
+
+    expect(ok(await admin().counts(op.actor))).toEqual({ submitted: 1, under_review: 1 });
+    fails(await admin().counts((await makeActor()).actor), "FORBIDDEN");
+  });
+
   it("operator mengubah inovasi terbit tanpa mengubah slug dan memicu penyegaran publik", async () => {
     const op = await makeActor("operator");
     const other = await makeActor("operator");

@@ -139,6 +139,19 @@ export function createAdminInnovationService(
   return {
     get,
 
+    /** Jumlah inovasi per status (semua pengaju) untuk ringkasan dashboard admin. */
+    async counts(actor: AuthUser): Promise<ServiceResult<Partial<Record<InnovationStatus, number>>>> {
+      return run(async (tx) => {
+        requirePermission(actor, "innovation.read_any");
+        const rows = await tx
+          .select({ status: innovations.status, n: count() })
+          .from(innovations)
+          .where(isNull(innovations.deletedAt))
+          .groupBy(innovations.status);
+        return Object.fromEntries(rows.map((r) => [r.status, r.n]));
+      });
+    },
+
     async list(
       actor: AuthUser,
       options: { status?: InnovationStatus; q?: string; facultyId?: string; page: number; perPage: number },

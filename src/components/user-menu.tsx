@@ -6,7 +6,17 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiRequest } from "./api-client";
 
-export function UserMenu({ name, csrf, showDashboard }: { name: string; csrf: string; showDashboard: boolean }) {
+export function UserMenu({
+  name,
+  csrf,
+  showDashboard,
+  showAdmin,
+}: {
+  name: string;
+  csrf: string;
+  showDashboard: boolean;
+  showAdmin: boolean;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
@@ -26,6 +36,14 @@ export function UserMenu({ name, csrf, showDashboard }: { name: string; csrf: st
           className="inline-flex min-h-11 items-center rounded-control px-3 text-sm font-semibold text-foreground transition-colors hover:bg-primary-tint hover:text-primary"
         >
           Dashboard
+        </Link>
+      ) : null}
+      {showAdmin ? (
+        <Link
+          href="/admin"
+          className="inline-flex min-h-11 items-center rounded-control px-3 text-sm font-semibold text-foreground transition-colors hover:bg-primary-tint hover:text-primary"
+        >
+          Admin
         </Link>
       ) : null}
       <span className="hidden max-w-[10rem] truncate text-sm text-muted-foreground lg:inline" title={name}>

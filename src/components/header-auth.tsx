@@ -29,6 +29,7 @@ export async function HeaderAuth() {
       name={session.user.name}
       csrf={csrf}
       showDashboard={session.user.permissions.has("innovation.create")}
+      showAdmin={session.user.permissions.has("innovation.read_any")}
     />
   );
 }

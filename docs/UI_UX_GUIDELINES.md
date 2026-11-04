@@ -313,6 +313,16 @@ Menu dan aksi yang tidak diizinkan role **disembunyikan di UI sekaligus ditolak 
 
 Warna status memakai token `--color-status-*` di `globals.css`, semua pasangan teks/latar berkontras minimal 6,2:1 (diukur: draft 8,40; diajukan 8,49; diperiksa 8,15; revisi 8,18; disetujui 7,47; terbit 6,20; ditarik 7,58).
 
+### 10.10 Catatan implementasi UI admin (menyimpang dari wireframe, sengaja)
+
+| Wireframe | Implementasi | Alasan |
+|---|---|---|
+| Sidebar dengan banyak menu | Tab horizontal: **Antrean verifikasi** dan **Data acuan** | Hanya halaman yang sudah ada yang diberi menu. Peneliti, Berkas, Kolaborasi, Pengguna, Audit Log, Pengaturan menyusul bersama halamannya |
+| Kartu statistik (Menunggu, Dalam Review, Kolaborasi Baru) | Lima kartu status (menunggu diperiksa, sedang diperiksa, perlu revisi, siap terbit, terbit); tanpa kartu kolaborasi | Modul kolaborasi belum ada. Kartu menjadi tautan ke antrean terfilter; "Menunggu diperiksa" diberi sorotan emas bila > 0 |
+| `DataTable` (TanStack Table) | Tabel semantik biasa (`thead`, `th scope`) di layar lebar, kartu di layar sempit; filter lewat formulir GET | Tidak menambah dependensi. Urut-kolom belum ada; urutan tetap terbaru diperbarui dulu |
+| Panel Keputusan: radio Setujui / Minta revisi, catatan | Sama, plus aksi per status (mulai periksa, terbitkan, tarik, terbitkan kembali, kembalikan ke draft) dan hapus beralasan | Seluruh transisi reviewer di `WORKFLOW.md` tersedia dari satu panel; tombol yang tidak diizinkan disembunyikan dan server menolak lagi |
+| Operator mengedit isi | **Belum ada di UI** (API `PATCH /admin/innovations/{id}` sudah ada) | Perlu keputusan OQ-23 soal suntingan atas inovasi terbit |
+
 ## 11. Tahapan Implementasi UI (untuk Fase 5)
 
 1. Token + `next/font` + komponen dasar (tombol, input, kartu, badge), diuji di Storybook-ringan atau halaman `/_design` (hanya dev).
