@@ -1,4 +1,4 @@
-import { ROLES, type RoleCode } from "@/modules/auth/permissions";
+import { ROLES, type PermissionCode, type RoleCode } from "@/modules/auth/permissions";
 import { recordAudit } from "@/platform/audit/audit";
 import type { Database } from "@/platform/db/client";
 import { fail, json, ok, validationFailure } from "@/platform/http/response";
@@ -56,7 +56,7 @@ export function createAuthHandlers(deps: AuthDeps) {
      */
     async authenticate(
       request: Request,
-      options: { mutation?: boolean } = {},
+      options: { mutation?: boolean; permission?: PermissionCode } = {},
     ): Promise<{ session: ActiveSession } | { response: Response }> {
       if (options.mutation && !isAllowedOrigin(request.headers.get("origin"), appUrl)) {
         return { response: FORBIDDEN_ORIGIN() };
@@ -65,6 +65,9 @@ export function createAuthHandlers(deps: AuthDeps) {
       if (!session) return { response: UNAUTHENTICATED() };
       if (options.mutation && !verifyCsrfToken(request.headers.get("x-csrf-token"), session.sessionId, secret)) {
         return { response: json(fail("FORBIDDEN", "Token keamanan tidak valid. Muat ulang halaman.")) };
+      }
+      if (options.permission && !session.user.permissions.has(options.permission)) {
+        return { response: json(fail("FORBIDDEN", "Anda tidak berwenang mengakses ini.")) };
       }
       return { session };
     },

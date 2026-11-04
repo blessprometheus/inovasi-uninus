@@ -82,10 +82,19 @@ Catatan perilaku (sudah diimplementasikan untuk rute inovasi, tanpa berkas dan p
 | POST | `/admin/innovations/{id}/transitions` | `review` / `publish` | Body: `{ "to": "approved", "note": "..." }`. Izin ditentukan oleh transisi (`WORKFLOW.md`). 409 bila tidak valid |
 | DELETE | `/admin/innovations/{id}` | `innovation.delete_any` | Soft delete + alasan |
 | CRUD | `/admin/researchers` | `researcher.manage` | |
-| CRUD | `/admin/faculties`, `/study-programs`, `/categories`, `/innovation-types` | `taxonomy.manage` | Nonaktifkan, bukan hapus, bila sudah dipakai |
+| GET/POST/PATCH | `/admin/faculties`, `/admin/study-programs`, `/admin/categories`, `/admin/innovation-types` | `taxonomy.manage` | **Tanpa DELETE**: nonaktifkan lewat `isActive: false`. Menghapus baris akan mengosongkan rujukan pada inovasi yang memakainya. Slug dibuat otomatis dari nama dan tidak berubah; fakultas milik prodi tidak bisa dipindah |
 | GET/DELETE | `/admin/files/{id}` | `file.manage_any` | |
 | GET | `/admin/collaboration-requests` | `collaboration.read` | |
 | PATCH | `/admin/collaboration-requests/{id}` | `collaboration.handle` | Ubah status, catatan |
+
+Catatan perilaku (sudah diimplementasikan untuk inovasi dan taksonomi):
+
+- Semua rute `/admin/innovations` menolak 403 bagi yang tidak punya `innovation.read_any`. Layanan juga memeriksanya sendiri: bukan reviewer selalu 404, bahkan untuk inovasi miliknya.
+- `POST /admin/innovations/{id}/transitions`: status tujuan tak dikenal 400; pasangan status yang tidak ada 409 `INVALID_TRANSITION`; pasangan milik pemilik (mis. `draft→submitted`) atau memeriksa pengajuan sendiri 403; `revision_required` dan `unpublished` tanpa `note` 400 dengan `details.field = "note"`. Izin: `innovation.review` untuk memeriksa/revisi/setujui, `innovation.publish` untuk terbit, tarik, terbit ulang, dan kembalikan ke draft. Percobaan 409/403 dicatat di audit log (`innovation.transition_denied`).
+- Respons transisi dan `GET /admin/innovations/{id}` memuat `submitter` dan `history` (dengan nama aktor dan catatan).
+- Saat terbit pertama: `firstPublishedAt` dan `publishedAt` diisi; terbit ulang tidak mengubahnya. Saat terbit, ditarik, atau diedit ketika terbit, cache `catalog` dan `sitemap` disegarkan segera (`expire: 0`).
+- `DELETE /admin/innovations/{id}`: body `{ "reason": "..." }` wajib (3-500 karakter). Inovasi terbit harus ditarik dulu (409). Soft delete; riwayat status tetap.
+- `GET /innovations`-style acuan publik (`/categories`, `/faculties`, `/study-programs`, `/innovation-types`) mengembalikan item **aktif** saja, dengan `innovationCount` (inovasi terbit, tidak terhapus).
 
 ## 6. Super Admin
 
