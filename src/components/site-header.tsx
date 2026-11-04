@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
+import { HeaderAuth } from "./header-auth";
 
 /** Hanya tautan ke halaman yang sudah ada. Tambahkan menu baru bersamaan dengan halamannya. */
 const NAV = [
@@ -30,20 +32,26 @@ export function SiteHeader() {
             </span>
           </span>
         </Link>
-        <nav aria-label="Navigasi utama">
-          <ul className="flex items-center gap-1">
-            {NAV.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="inline-flex min-h-11 items-center rounded-control px-4 text-sm font-semibold text-foreground transition-colors hover:bg-primary-tint hover:text-primary"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <div className="flex items-center gap-1">
+          <nav aria-label="Navigasi utama">
+            <ul className="flex items-center gap-1">
+              {NAV.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className="inline-flex min-h-11 items-center rounded-control px-3 text-sm font-semibold text-foreground transition-colors hover:bg-primary-tint hover:text-primary sm:px-4"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          {/* Membaca cookie sesi = data runtime, jadi harus di dalam Suspense. */}
+          <Suspense fallback={<span className="inline-block h-11 w-20" aria-hidden="true" />}>
+            <HeaderAuth />
+          </Suspense>
+        </div>
       </div>
     </header>
   );

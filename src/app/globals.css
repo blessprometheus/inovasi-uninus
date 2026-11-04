@@ -19,6 +19,21 @@
   --color-success: #15803d;
   --color-destructive: #b91c1c;
   --color-ring: #00703e;
+  /* Warna status workflow (UI_UX_GUIDELINES §2); semua pasangan teks/latar berkontras >= 6,2:1. */
+  --color-status-draft-bg: #e2e8f0;
+  --color-status-draft-fg: #334155;
+  --color-status-submitted-bg: #dbeafe;
+  --color-status-submitted-fg: #1e3a8a;
+  --color-status-under-review-bg: #fef3c7;
+  --color-status-under-review-fg: #78350f;
+  --color-status-revision-bg: #ffedd5;
+  --color-status-revision-fg: #7c2d12;
+  --color-status-approved-bg: #e8f5ee;
+  --color-status-approved-fg: #005a32;
+  --color-status-published-bg: #00703e;
+  --color-status-published-fg: #ffffff;
+  --color-status-unpublished-bg: #ffffff;
+  --color-status-unpublished-fg: #475569;
 }
 
 @theme inline {
@@ -39,6 +54,20 @@
   --color-success: var(--color-success);
   --color-destructive: var(--color-destructive);
   --color-ring: var(--color-ring);
+  --color-status-draft-bg: var(--color-status-draft-bg);
+  --color-status-draft-fg: var(--color-status-draft-fg);
+  --color-status-submitted-bg: var(--color-status-submitted-bg);
+  --color-status-submitted-fg: var(--color-status-submitted-fg);
+  --color-status-under-review-bg: var(--color-status-under-review-bg);
+  --color-status-under-review-fg: var(--color-status-under-review-fg);
+  --color-status-revision-bg: var(--color-status-revision-bg);
+  --color-status-revision-fg: var(--color-status-revision-fg);
+  --color-status-approved-bg: var(--color-status-approved-bg);
+  --color-status-approved-fg: var(--color-status-approved-fg);
+  --color-status-published-bg: var(--color-status-published-bg);
+  --color-status-published-fg: var(--color-status-published-fg);
+  --color-status-unpublished-bg: var(--color-status-unpublished-bg);
+  --color-status-unpublished-fg: var(--color-status-unpublished-fg);
   --font-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
   --radius-control: 8px;
   --radius-card: 12px;

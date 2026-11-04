@@ -299,6 +299,20 @@ Satu halaman, bagian bertahap (accordion/langkah) dengan **simpan otomatis sebag
 
 Menu dan aksi yang tidak diizinkan role **disembunyikan di UI sekaligus ditolak di server** (UI bukan lapisan keamanan).
 
+### 10.9 Catatan implementasi UI dosen (menyimpang dari wireframe, sengaja)
+
+| Wireframe | Implementasi | Alasan |
+|---|---|---|
+| Simpan otomatis sebagai draft | Tombol **Simpan draft** eksplisit + peringatan bila meninggalkan halaman dengan perubahan belum disimpan | Simpan otomatis butuh aturan penanganan konflik dan galat validasi di tengah pengetikan; ditunda (OQ-24) |
+| Satu URL `/dosen/inovasi/{id}/edit` untuk edit dan mode baca | Mode baca di `/dosen/inovasi/{id}` (dengan riwayat status dan aksi); `/edit` mengalihkan ke sana bila terkunci | Memisahkan formulir berat dari tampilan baca |
+| Tabel "Inovasi Saya" | Daftar bertumpuk (judul, status, tanggal, aksi) | Tetap semantik (`ul/li`) dan otomatis rapi di 375 px tanpa mode kartu terpisah. Tabel tetap dipakai untuk admin |
+| Pencarian di daftar | Filter status saja | `listOwn` belum mendukung kata kunci |
+| Sidebar (Profil, Riwayat) | Tanpa sidebar | Halaman Profil dan Riwayat belum ada; menu hanya ditambahkan bersama halamannya |
+| Bagian 5 Media dan dokumen | Hanya catatan "menyusul" | Menunggu modul penyimpanan berkas (OQ-19) |
+| Validasi saat blur | Validasi server saat simpan/ajukan + `maxLength` + checklist kelengkapan langsung | Aturan hanya hidup di satu tempat (server) |
+
+Warna status memakai token `--color-status-*` di `globals.css`, semua pasangan teks/latar berkontras minimal 6,2:1 (diukur: draft 8,40; diajukan 8,49; diperiksa 8,15; revisi 8,18; disetujui 7,47; terbit 6,20; ditarik 7,58).
+
 ## 11. Tahapan Implementasi UI (untuk Fase 5)
 
 1. Token + `next/font` + komponen dasar (tombol, input, kartu, badge), diuji di Storybook-ringan atau halaman `/_design` (hanya dev).

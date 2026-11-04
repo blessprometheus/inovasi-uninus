@@ -66,6 +66,11 @@ const TEXT_FIELDS = [
 
 const uuidSchema = z.uuid();
 
+/** Inovasi milik pengguna atau yang menyertakan profil penelitinya sebagai anggota tim. */
+const mineCondition = (userId: string) => sql`(${innovations.submittedBy} = ${userId} or exists (
+  select 1 from ${innovationMembers} m join ${researchers} r on r.id = m.researcher_id
+  where m.innovation_id = ${innovations.id} and r.user_id = ${userId}))`;
+
 export function createInnovationService(db: Database) {
   const run = <T,>(fn: (tx: Tx) => Promise<T>): Promise<ServiceResult<T>> => runService(db, fn);
 
@@ -262,18 +267,28 @@ export function createInnovationService(db: Database) {
       });
     },
 
+    /** Jumlah inovasi per status (milik sendiri + tim) untuk ringkasan dashboard. */
+    async countsOwn(actor: AuthUser): Promise<ServiceResult<Partial<Record<InnovationStatus, number>>>> {
+      return run(async (tx) => {
+        requirePermission(actor, "innovation.read_own");
+        const rows = await tx
+          .select({ status: innovations.status, n: count() })
+          .from(innovations)
+          .where(and(isNull(innovations.deletedAt), mineCondition(actor.id)))
+          .groupBy(innovations.status);
+        return Object.fromEntries(rows.map((r) => [r.status, r.n]));
+      });
+    },
+
     async listOwn(
       actor: AuthUser,
       options: { status?: InnovationStatus; page: number; perPage: number },
     ): Promise<ServiceResult<{ items: OwnInnovationListItem[]; total: number }>> {
       return run(async (tx) => {
         requirePermission(actor, "innovation.read_own");
-        const mine = sql`(${innovations.submittedBy} = ${actor.id} or exists (
-          select 1 from ${innovationMembers} m join ${researchers} r on r.id = m.researcher_id
-          where m.innovation_id = ${innovations.id} and r.user_id = ${actor.id}))`;
         const where = and(
           isNull(innovations.deletedAt),
-          mine,
+          mineCondition(actor.id),
           options.status ? eq(innovations.status, options.status) : undefined,
         );
         const rows = await tx

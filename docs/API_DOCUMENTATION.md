@@ -62,6 +62,7 @@ Hanya mengembalikan data `published`.
 | GET | `/me/innovations/{id}/history` | `innovation.read_own` | Riwayat status + catatan revisi |
 | POST | `/me/innovations/{id}/files` | `file.manage_own` | `multipart/form-data`, validasi ukuran/MIME/magic bytes |
 | PATCH/DELETE | `/me/innovations/{id}/files/{fileId}` | `file.manage_own` | Judul, urutan, cover, visibilitas |
+| GET | `/me/researchers?q=` | `innovation.create` | Pemilih anggota tim. Minimal 2 huruf, maksimal 10 hasil, hanya profil **publik** yang belum dihapus, hanya `id`, `fullName`, `facultyName` (tanpa NIDN/NIP) |
 | GET/PATCH | `/me/profile` | `profile.update_own` | Hanya field yang boleh diubah dosen (sisanya dari SSO) |
 
 Catatan perilaku (sudah diimplementasikan untuk rute inovasi, tanpa berkas dan profil):

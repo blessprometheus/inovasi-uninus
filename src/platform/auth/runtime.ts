@@ -3,6 +3,7 @@ import { createAdminInnovationHandlers, type AdminInnovationHandlers } from "@/m
 import { createAdminInnovationService } from "@/modules/innovations/admin-service";
 import { createInnovationHandlers, type InnovationHandlers } from "@/modules/innovations/handlers";
 import { createInnovationService } from "@/modules/innovations/service";
+import { createResearcherLookup, createResearcherLookupHandler } from "@/modules/researchers/lookup";
 import { createTaxonomyHandlers, type TaxonomyHandlers } from "@/modules/taxonomy/handlers";
 import { createTaxonomyService } from "@/modules/taxonomy/service";
 import { getSiteUrl } from "@/platform/config/site";
@@ -26,6 +27,11 @@ function refreshPublicCache() {
   revalidateTag("sitemap", { expire: 0 });
 }
 
+/** Layanan untuk Server Component (halaman memanggil layanan langsung, bukan lewat HTTP). */
+export const getInnovationService = () => createInnovationService(getDb());
+export const getTaxonomyService = () => createTaxonomyService(getDb());
+export const getResearcherLookup = () => createResearcherLookup(getDb());
+
 let cachedInnovations: InnovationHandlers | undefined;
 
 /** Handler `/api/v1/me/innovations`, memakai gerbang sesi/CSRF yang sama dengan auth. */
@@ -48,6 +54,17 @@ export function getAdminInnovationHandlers(): AdminInnovationHandlers {
     }),
   });
   return cachedAdmin;
+}
+
+let cachedLookup: ReturnType<typeof createResearcherLookupHandler> | undefined;
+
+/** `GET /api/v1/me/researchers?q=` untuk pemilih anggota tim. */
+export function getResearcherLookupHandler() {
+  cachedLookup ??= createResearcherLookupHandler({
+    auth: getAuthHandlers(),
+    lookup: createResearcherLookup(getDb()),
+  });
+  return cachedLookup;
 }
 
 let cachedTaxonomy: TaxonomyHandlers | undefined;
