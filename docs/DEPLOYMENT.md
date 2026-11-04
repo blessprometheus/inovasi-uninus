@@ -42,7 +42,7 @@ Staging memakai server yang sama akan menambah beban (OQ-01). Alternatif: stagin
 
 Nilai asli tidak pernah di repo. `.env.example` memuat nama berikut:
 
-`APP_ENV`, `APP_URL`, `DATABASE_URL`, `SESSION_SECRET`, `SSO_ISSUER_URL`, `SSO_CLIENT_ID`, `SSO_CLIENT_SECRET`, `SSO_REDIRECT_URI`, `STORAGE_PATH`, `UPLOAD_MAX_IMAGE_MB`, `UPLOAD_MAX_DOC_MB`, `SMTP_*` (P1), `INITIAL_SUPER_ADMIN_EMAIL`.
+`APP_ENV`, `APP_URL`, `DATABASE_URL`, `AUTH_SECRET` (min. 32 karakter acak, beda per lingkungan), `SSO_ISSUER_URL`, `SSO_CLIENT_ID`, `SSO_CLIENT_SECRET`, `SSO_REDIRECT_URI`, `STORAGE_PATH`, `UPLOAD_MAX_IMAGE_MB`, `UPLOAD_MAX_DOC_MB`, `SMTP_*` (P1), `INITIAL_SUPER_ADMIN_EMAIL`.
 
 ## 5. Build dan Rilis
 
@@ -81,5 +81,6 @@ HTTPS dengan pembaruan sertifikat otomatis, firewall hanya membuka 80/443/SSH (S
 - [ ] Header keamanan, HTTPS, rate limit terverifikasi
 - [ ] Seluruh tes (unit, integrasi, E2E, otorisasi, aksesibilitas) lulus
 - [ ] Sitemap, robots, metadata diverifikasi di URL produksi (`/robots.txt` harus `Allow: /` dan berisi `Sitemap:`; `/sitemap.xml` memakai domain produksi). Pastikan `APP_ENV=production` dan `APP_URL` terisi di server.
+- [ ] `AUTH_SECRET` terisi; `DEV_LOGIN` **tidak** ada di environment staging/produksi (bila ada, semua request menjawab 500)
 - [ ] Rencana onboarding dosen siap (katalog kosong saat awal)
 - [ ] Persetujuan tertulis pengguna untuk rilis produksi

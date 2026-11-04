@@ -29,6 +29,9 @@ Sesi berbasis cookie (`__Host-` prefix, HttpOnly, Secure, SameSite=Lax). Untuk m
 | POST | `/auth/logout` | sesi | Cabut sesi |
 | GET | `/auth/me` | sesi | Profil, role, permission pengguna saat ini |
 | GET | `/auth/csrf` | sesi | Token CSRF |
+| POST | `/auth/dev-login` | khusus pengembangan | Body `{ email, role, name? }`, role `researcher`/`operator`/`super_admin`. Hanya hidup bila `DEV_LOGIN=1` dan `APP_ENV=development`; selain itu 404. Memeriksa Origin. Merotasi sesi. Tidak ada di produksi |
+
+`/auth/logout` selalu memeriksa Origin; bila ada sesi, token CSRF juga wajib. Tanpa sesi, logout tetap berhasil dan hanya membersihkan cookie (idempoten). Nama cookie: `__Host-inovasi_session` di https, `inovasi_session` di http lokal. Token CSRF dihasilkan dari `AUTH_SECRET` dan ID sesi, jadi tidak berlaku untuk sesi lain.
 
 ## 3. Publik (tanpa login)
 

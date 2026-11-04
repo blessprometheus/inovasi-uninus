@@ -36,6 +36,10 @@ Tes integrasi memakai PostgreSQL **asli**, bukan mock, supaya constraint, indeks
 | Parameter daftar (`?q=&page=`) | Default, pemangkasan q, nilai berulang, halaman tidak valid dan batas atas | Unit (4 tes) |
 | Provider PostgreSQL (katalog) | Hanya published dan tidak terhapus (pencarian, detail, sitemap, beranda), pencarian judul/ringkasan, `%`/`_` bukan wildcard, input SQL aneh aman, paginasi, unggulan vs terbaru, statistik, detail lengkap | Integrasi (9 tes) |
 | Provider PostgreSQL (peneliti) | Hanya profil publik dan tidak terhapus, NIDN/NIP tidak keluar, jumlah dan daftar inovasi hanya yang terbit, tautan eksternal hanya http/https | Integrasi (7 tes) |
+| Cookie sesi | Awalan `__Host-` + Secure hanya di https, HttpOnly/SameSite=Lax/tanpa Domain, hapus cookie, nama cookie atau nilai aneh ditolak | Unit (5 tes) |
+| Login pengembangan (guard) | Aktif hanya bila `DEV_LOGIN=1` dan `APP_ENV=development` dan bukan produksi; start ditolak bila `DEV_LOGIN=1` di luar itu | Unit (3 tes) |
+| Penyimpanan sesi | Hanya hash token tersimpan, sesi tak dikenal/kedaluwarsa idle/absolut ditolak, batas 8 jam tidak bisa dilewati, akun nonaktif/terhapus ditolak, cabut semua sesi pengguna | Integrasi (5 tes) |
+| Alur auth (login dev, me, csrf, logout) | Alur lengkap + audit log, permission sesuai role, 401 tanpa/palsu cookie, rotasi sesi saat login ulang, tanpa duplikasi akun; logout ditolak tanpa/asing Origin, tanpa/salah/CSRF sesi lain; dev-login mati = 404 tanpa efek; input rusak/field tambahan/role tak dikenal ditolak | Integrasi (12 tes) |
 | Skema database | Email huruf kecil dan unik, slug unik, batas tahun, satu ketua per inovasi, satu sampul per inovasi, sumber berkas sesuai jenis, tautan hanya http/https, cascade hapus, pencarian teks dan trigram | Integrasi |
 | Seed RBAC | Sesuai `USER_ROLES.md`, pemisahan hak role, idempotent | Integrasi |
 

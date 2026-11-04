@@ -19,7 +19,7 @@ Status: **DRAFT Fase 3.** Angka batas bertanda **[USULAN]** menunggu OQ-06. Doku
 - Tanpa password lokal. Login hanya lewat SSO UNINUS (Authorization Code + PKCE, `state` dan `nonce` divalidasi, redirect URI persis sama dengan yang terdaftar).
 - Sesi: ID acak 256-bit, hanya hash disimpan. Masa berlaku absolut **[USULAN]** 8 jam, idle 60 menit, dicabut saat logout atau saat akun dinonaktifkan.
 - Pengguna yang dinonaktifkan di platform ini ditolak walau SSO menerima.
-- Tidak ada akun/backdoor "dev" di produksi. Mode login pengembangan hanya aktif bila `APP_ENV=development` dan gagal start bila aktif di produksi.
+- Tidak ada akun/backdoor "dev" di produksi. Mode login pengembangan (`POST /api/v1/auth/dev-login`) hanya aktif bila `DEV_LOGIN=1` **dan** `APP_ENV=development` **dan** bukan mode produksi. Bila `DEV_LOGIN=1` ditemukan di luar itu, hook `instrumentation` melempar galat: proses Next.js tetap hidup tetapi menjawab 500 untuk semua request (diverifikasi), jadi jalur dev tidak pernah terjangkau dan penyebabnya tercatat di log. Tanpa `DEV_LOGIN`, rute itu menjawab 404.
 
 ## 3. Otorisasi
 
