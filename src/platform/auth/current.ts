@@ -32,9 +32,16 @@ export const getCurrentSession = cache(async (): Promise<ActiveSession | null> =
 });
 
 /** Untuk halaman terlindungi: tanpa sesi, arahkan ke login dan kembali ke halaman ini setelahnya. */
-export async function requireSession(returnTo: string): Promise<ActiveSession> {
+export async function requireSession(
+  returnTo: string,
+  options: { allowPasswordChange?: boolean } = {},
+): Promise<ActiveSession> {
   const session = await getCurrentSession();
   if (!session) redirect(`/masuk?next=${encodeURIComponent(returnTo)}`);
+  // Akun yang sandinya sementara hanya boleh ke halaman ganti sandi (diperiksa ulang di server pada tiap API).
+  if (session.user.mustChangePassword && !options.allowPasswordChange) {
+    redirect(`/akun/kata-sandi?next=${encodeURIComponent(returnTo)}`);
+  }
   return session;
 }
 

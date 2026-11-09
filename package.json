@@ -13,15 +13,18 @@
     "test:integration": "node --env-file-if-exists=.env.local node_modules/vitest/vitest.mjs run --config vitest.integration.config.mts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/migrate.ts",
-    "db:seed": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/seed.ts"
+    "db:seed": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/seed.ts",
+    "admin:create": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/create-super-admin.ts"
   },
   "dependencies": {
+    "argon2": "^0.45.2",
     "drizzle-orm": "^0.45.4",
     "lucide-react": "^1.67.0",
     "next": "16.4.4",
     "pg": "^8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "sharp": "^0.35.5",
     "uuid": "^14.0.3",
     "zod": "^4.6.7"
   },

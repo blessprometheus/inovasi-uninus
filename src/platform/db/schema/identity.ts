@@ -4,6 +4,7 @@ import {
   check,
   index,
   inet,
+  integer,
   pgTable,
   primaryKey,
   text,
@@ -17,9 +18,17 @@ export const users = pgTable(
   "users",
   {
     id: pk(),
-    ssoSubject: text("sso_subject").notNull(),
+    /** Kosong untuk akun lokal (ADR-008: tanpa SSO). Hanya login pengembangan yang mengisinya ("dev:..."). */
+    ssoSubject: text("sso_subject"),
     email: text("email").notNull(),
     name: text("name").notNull(),
+    /** Hash argon2id. Kosong = akun tidak bisa login dengan kata sandi. */
+    passwordHash: text("password_hash"),
+    passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }),
+    /** Akun baru atau yang kata sandinya diatur ulang super admin wajib menggantinya sebelum bekerja. */
+    mustChangePassword: boolean("must_change_password").notNull().default(false),
+    failedLoginCount: integer("failed_login_count").notNull().default(0),
+    lockedUntil: timestamp("locked_until", { withTimezone: true }),
     isActive: boolean("is_active").notNull().default(true),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),

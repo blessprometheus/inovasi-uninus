@@ -16,6 +16,8 @@ export interface SessionUser {
   id: string;
   email: string;
   name: string;
+  /** Akun baru atau yang sandinya diatur ulang: wajib ganti sandi sebelum memakai fitur lain. */
+  mustChangePassword: boolean;
   roles: string[];
   permissions: ReadonlySet<PermissionCode>;
 }
@@ -69,6 +71,7 @@ export async function findSession(
       userId: users.id,
       email: users.email,
       name: users.name,
+      mustChangePassword: users.mustChangePassword,
       isActive: users.isActive,
       deletedAt: users.deletedAt,
     })
@@ -99,6 +102,7 @@ export async function findSession(
       id: row.userId,
       email: row.email,
       name: row.name,
+      mustChangePassword: row.mustChangePassword,
       roles: [...new Set(grants.map((g) => g.role))],
       permissions: new Set(grants.flatMap((g) => (g.permission ? [g.permission as PermissionCode] : []))),
     },
