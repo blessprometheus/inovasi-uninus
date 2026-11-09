@@ -6,6 +6,9 @@ import { resetTestDb, setupTestDb } from "@/platform/db/testing";
 import { createInnovationHandlers } from "./handlers";
 import { createInnovationService } from "./service";
 
+// Menguji alur pengajuan dosen lama, yang hanya hidup di balik flag (ADR-008, D-20).
+process.env.RESEARCHER_PORTAL = "1";
+
 const APP_URL = "http://localhost:3000";
 const SECRET = "x".repeat(40);
 const DEV_ENV = { DEV_LOGIN: "1", APP_ENV: "development", NODE_ENV: "test" };

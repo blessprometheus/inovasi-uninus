@@ -3,6 +3,7 @@ import {
   categories,
   faculties,
   innovationCategories,
+  innovationFiles,
   innovationMembers,
   innovations,
   intellectualProperties,
@@ -196,5 +197,43 @@ describe("katalog PostgreSQL: detail", () => {
     expect(d?.abstract).toBe("[DUMMY] Abstrak");
     expect(d?.methodology).toBeNull();
     expect(d?.publishedAt).toBe("2025-01-01T00:00:00.000Z");
+  });
+});
+
+describe("sampul dan dokumen publik", () => {
+  const addFile = (innovationId: string, over: Partial<typeof innovationFiles.$inferInsert>) =>
+    ctx.db
+      .insert(innovationFiles)
+      .values({ innovationId, kind: "image", visibility: "public", storageKey: "ab/x.webp", mimeType: "image/webp", sizeBytes: 10, ...over })
+      .returning();
+
+  it("kartu memakai varian kecil dari sampul publik, detail memakai varian penuh", async () => {
+    const inv = await addInnovation("dengan-sampul");
+    const [cover] = await addFile(inv.id, { isCover: true, altText: "[DUMMY] Alat" });
+    const provider = createPgCatalogProvider(ctx.db);
+
+    const page = await provider.search({ page: 1, perPage: 10 });
+    expect(page.items[0]).toMatchObject({ coverUrl: `/api/v1/files/${cover.id}?v=thumb`, coverAlt: "[DUMMY] Alat" });
+    const detail = await provider.getBySlug("dengan-sampul");
+    expect(detail?.coverUrl).toBe(`/api/v1/files/${cover.id}`);
+  });
+
+  it("tanpa sampul, atau sampul restricted, atau bukan gambar: tidak ada gambar di katalog", async () => {
+    const a = await addInnovation("tanpa-sampul");
+    await addFile(a.id, { isCover: false });
+    const b = await addInnovation("sampul-terbatas");
+    await addFile(b.id, { isCover: true, visibility: "restricted" });
+    const items = (await createPgCatalogProvider(ctx.db).search({ page: 1, perPage: 10 })).items;
+    expect(items.map((i) => i.coverUrl)).toEqual([null, null]);
+  });
+
+  it("detail hanya memuat dokumen publik (bukan restricted, bukan gambar), dengan judul dan ukuran", async () => {
+    const inv = await addInnovation("dengan-dokumen");
+    const [pub] = await addFile(inv.id, { kind: "document", mimeType: "application/pdf", title: "[DUMMY] Laporan", sizeBytes: 2048, storageKey: "ab/y.pdf" });
+    await addFile(inv.id, { kind: "document", visibility: "restricted", mimeType: "application/pdf", title: "[DUMMY] Rahasia", storageKey: "ab/z.pdf" });
+    await addFile(inv.id, { kind: "image" });
+    const detail = await createPgCatalogProvider(ctx.db).getBySlug("dengan-dokumen");
+    expect(detail?.documents).toEqual([{ id: pub.id, title: "[DUMMY] Laporan", sizeBytes: 2048 }]);
+    expect(JSON.stringify(detail)).not.toContain("Rahasia");
   });
 });

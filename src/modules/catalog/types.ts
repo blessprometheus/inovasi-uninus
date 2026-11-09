@@ -81,6 +81,12 @@ export interface CatalogIp {
 }
 
 /** Bagian teks panjang berurutan sesuai halaman detail. Bagian kosong tidak ditampilkan. */
+export interface CatalogDocument {
+  id: string;
+  title: string;
+  sizeBytes: number;
+}
+
 export interface CatalogDetail extends CatalogItem {
   typeName: string | null;
   studyProgramName: string | null;
@@ -93,6 +99,8 @@ export interface CatalogDetail extends CatalogItem {
   advantages: string | null;
   benefits: string | null;
   developmentPotential: string | null;
+  /** Dokumen yang ditetapkan operator sebagai publik. Berkas restricted tidak pernah ikut. */
+  documents: CatalogDocument[];
   members: CatalogMember[];
   publications: CatalogPublication[];
   intellectualProperties: CatalogIp[];

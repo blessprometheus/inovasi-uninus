@@ -85,6 +85,7 @@ export const dummyCatalogProvider: CatalogProvider = {
       advantages: null,
       benefits: "[DUMMY] Manfaat contoh.",
       developmentPotential: null,
+      documents: [],
       members: [
         { name: "[DUMMY] Nama Peneliti", role: "lead" },
         { name: "[DUMMY] Anggota Tim", role: "member" },

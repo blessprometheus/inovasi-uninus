@@ -53,6 +53,14 @@ export function createAdminInnovationHandlers(deps: { auth: AuthHandlers; servic
       return json(ok(result.data.items, { page: query.page, per_page: query.perPage, total: result.data.total }));
     },
 
+    async create(request: Request): Promise<Response> {
+      const g = await gate(request, true);
+      if ("response" in g) return g.response;
+      const body = await readJsonBody(request);
+      if ("response" in body) return body.response;
+      return respond(await service.create(toAuthUser(g.session.user), body.body), 201);
+    },
+
     async get(request: Request, id: string): Promise<Response> {
       const g = await gate(request);
       if ("response" in g) return g.response;

@@ -17,15 +17,25 @@ const issueFor = (res: ReturnType<typeof innovationDraftSchema.safeParse>, field
   !res.success ? res.error.issues.find((i) => i.path.join(".") === field) : undefined;
 
 describe("innovationDraftSchema", () => {
-  it("menerima draft minimal (hanya judul dan ringkasan)", () => {
+  it("menerima draft minimal (cukup judul)", () => {
     expect(innovationDraftSchema.safeParse(valid).success).toBe(true);
+    expect(innovationDraftSchema.safeParse({ title: valid.title }).success).toBe(true);
+    expect(innovationDraftSchema.safeParse({ title: valid.title, summary: "" }).success).toBe(true);
   });
 
-  it("judul dan ringkasan wajib, dengan pesan Bahasa Indonesia", () => {
+  it("ringkasan, bila diisi, minimal 20 dan maksimal 500 karakter", () => {
+    expect(issueFor(innovationDraftSchema.safeParse({ title: valid.title, summary: "terlalu pendek" }), "summary")?.message).toBe(
+      "Ringkasan minimal 20 karakter.",
+    );
+    expect(innovationDraftSchema.safeParse({ title: valid.title, summary: "x".repeat(501) }).success).toBe(false);
+    expect(innovationPatchSchema.safeParse({ summary: "" }).success).toBe(true);
+  });
+
+  it("hanya judul yang wajib, dengan pesan Bahasa Indonesia", () => {
     const res = innovationDraftSchema.safeParse({});
     expect(res.success).toBe(false);
     expect(issueFor(res, "title")).toBeDefined();
-    expect(issueFor(res, "summary")).toBeDefined();
+    expect(issueFor(res, "summary")).toBeUndefined();
     expect(innovationDraftSchema.safeParse({ ...valid, title: "abc" })).toMatchObject({ success: false });
     expect(issueFor(innovationDraftSchema.safeParse({ ...valid, title: "abc" }), "title")?.message).toBe(
       "Judul minimal 5 karakter.",

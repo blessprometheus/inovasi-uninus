@@ -14,6 +14,9 @@ import {
 import { resetTestDb, setupTestDb } from "@/platform/db/testing";
 import { createInnovationService, type ServiceResult } from "./service";
 
+// Menguji alur pengajuan dosen lama, yang hanya hidup di balik flag (ADR-008, D-20).
+process.env.RESEARCHER_PORTAL = "1";
+
 let ctx: Awaited<ReturnType<typeof setupTestDb>>;
 const service = () => createInnovationService(ctx.db);
 

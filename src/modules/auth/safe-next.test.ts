@@ -3,7 +3,7 @@ import { safeNextPath } from "./safe-next";
 
 describe("safeNextPath", () => {
   it("menerima jalur internal, termasuk query", () => {
-    expect(safeNextPath("/dosen")).toBe("/dosen");
+    expect(safeNextPath("/admin")).toBe("/admin");
     expect(safeNextPath("/dosen/inovasi/abc/edit?x=1")).toBe("/dosen/inovasi/abc/edit?x=1");
   });
 
@@ -17,16 +17,16 @@ describe("safeNextPath", () => {
       "/ok\r\nSet-Cookie: x=1",
       "/ok\\evil",
     ]) {
-      expect(safeNextPath(bad)).toBe("/dosen");
+      expect(safeNextPath(bad)).toBe("/admin");
     }
   });
 
   it("menolak kembali ke login/API, kosong, terlalu panjang; array memakai elemen pertama", () => {
-    expect(safeNextPath("/masuk?next=/dosen")).toBe("/dosen");
-    expect(safeNextPath("/api/v1/auth/me")).toBe("/dosen");
-    expect(safeNextPath(undefined)).toBe("/dosen");
-    expect(safeNextPath("")).toBe("/dosen");
-    expect(safeNextPath("/" + "a".repeat(400))).toBe("/dosen");
+    expect(safeNextPath("/masuk?next=/dosen")).toBe("/admin");
+    expect(safeNextPath("/api/v1/auth/me")).toBe("/admin");
+    expect(safeNextPath(undefined)).toBe("/admin");
+    expect(safeNextPath("")).toBe("/admin");
+    expect(safeNextPath("/" + "a".repeat(400))).toBe("/admin");
     expect(safeNextPath(["/admin", "https://x.example"])).toBe("/admin");
     expect(safeNextPath(null, "/")).toBe("/");
   });

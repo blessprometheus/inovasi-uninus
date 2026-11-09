@@ -243,7 +243,7 @@ export function createInnovationService(db: Database) {
             submittedBy: actor.id,
             status: "draft",
             title: input.title,
-            summary: input.summary,
+            summary: input.summary ?? "",
             abstract: input.abstract ?? null,
             background: input.background ?? null,
             problemStatement: input.problemStatement ?? null,

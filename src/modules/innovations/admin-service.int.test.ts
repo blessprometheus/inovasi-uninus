@@ -9,6 +9,9 @@ import { createAdminInnovationService } from "./admin-service";
 import { createInnovationService } from "./service";
 import type { ServiceResult } from "./service-core";
 
+// Menguji alur pengajuan dosen lama, yang hanya hidup di balik flag (ADR-008, D-20).
+process.env.RESEARCHER_PORTAL = "1";
+
 let ctx: Awaited<ReturnType<typeof setupTestDb>>;
 const onPublicChange = vi.fn();
 const dosenService = () => createInnovationService(ctx.db);

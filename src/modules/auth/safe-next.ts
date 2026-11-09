@@ -1,4 +1,4 @@
-const FALLBACK = "/dosen";
+const FALLBACK = "/admin";
 
 /**
  * Tujuan setelah login dari parameter `next`. Hanya jalur internal yang diterima, supaya halaman

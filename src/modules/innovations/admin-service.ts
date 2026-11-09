@@ -8,10 +8,12 @@ import {
 } from "@/modules/workflow/transitions";
 import { recordAudit } from "@/platform/audit/audit";
 import type { Database } from "@/platform/db/client";
-import { faculties, innovations, statusHistories, users } from "@/platform/db/schema";
+import { faculties, innovationCategories, innovations, statusHistories, users } from "@/platform/db/schema";
 import { z } from "@/platform/http/zod";
 import { escapeLike } from "@/modules/catalog/pg-provider";
+import { missingForSubmission } from "./submission";
 import {
+  currentTeam,
   failure,
   NOT_FOUND,
   runService,
@@ -48,8 +50,10 @@ export interface AdminInnovation extends OwnInnovation {
 /**
  * Izin yang dibutuhkan tiap transisi reviewer (docs/WORKFLOW.md §2, USER_ROLES.md).
  * Transisi milik pemilik (draft->submitted, dst.) tidak ada di sini, jadi ditolak lewat rute admin.
+ * Entri alur pengajuan dosen hanya tercapai bila RESEARCHER_PORTAL=1 (validateTransition menolaknya lebih dulu).
  */
 const TRANSITION_PERMISSION: Record<string, PermissionCode> = {
+  "draft>published": "innovation.publish",
   "submitted>under_review": "innovation.review",
   "under_review>revision_required": "innovation.review",
   "under_review>approved": "innovation.review",
@@ -192,6 +196,14 @@ export function createAdminInnovationService(
       });
     },
 
+    /** Operator membuat draft dari berkas fisik dosen. Pembuatnya (submittedBy) adalah operator, bukan ketua peneliti. */
+    async create(actor: AuthUser, input: unknown): Promise<ServiceResult<AdminInnovation>> {
+      if (!can(actor, "innovation.read_any")) return { ok: false, code: "FORBIDDEN", message: "Anda tidak berwenang melakukan tindakan ini." };
+      const created = await innovationService.createDraft(actor, input);
+      if (!created.ok) return created;
+      return get(actor, created.data.id);
+    },
+
     /** Operator mengubah isi lewat aturan yang sama dengan pemilik, tanpa batas status (update_any). */
     async update(actor: AuthUser, id: string, patch: unknown): Promise<ServiceResult<OwnInnovation>> {
       if (!can(actor, "innovation.update_any")) return { ok: false, code: "NOT_FOUND", message: "Data tidak ditemukan." };
@@ -238,6 +250,22 @@ export function createAdminInnovationService(
         const needed = TRANSITION_PERMISSION[`${row.status}>${to}`];
         if (!needed) failure("FORBIDDEN", "Perubahan status ini hanya dapat dilakukan oleh pemilik.");
         requirePermission(actor, needed);
+
+        // Terbit mensyaratkan field wajib lengkap (WORKFLOW.md §2). Draft boleh belum lengkap.
+        if (to === "published") {
+          const cats = await tx
+            .select({ id: innovationCategories.categoryId })
+            .from(innovationCategories)
+            .where(eq(innovationCategories.innovationId, id));
+          const team = await currentTeam(tx, id);
+          const missing = missingForSubmission({
+            title: row.title,
+            summary: row.summary,
+            categoryIds: cats.map((c) => c.id),
+            leadResearcherId: team.lead,
+          });
+          if (missing.length) failure("VALIDATION_ERROR", "Data belum lengkap untuk diterbitkan.", missing);
+        }
 
         const now = new Date();
         const set: Partial<typeof innovations.$inferInsert> = { status: to };

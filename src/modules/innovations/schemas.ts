@@ -53,7 +53,11 @@ export const intellectualPropertyInputSchema = z
   })
   .strict();
 
-/** Draft boleh belum lengkap, tetapi judul dan ringkasan selalu wajib (kartu katalog butuh keduanya). */
+/**
+ * Draft cukup berisi judul. Ringkasan boleh kosong (disimpan sebagai teks kosong, kolomnya NOT NULL)
+ * tetapi bila diisi minimal 20 karakter. Ringkasan wajib ada sebelum terbit (missingForSubmission),
+ * karena kartu katalog menampilkannya.
+ */
 const innovationBaseSchema = z
   .object({
     title: z
@@ -64,8 +68,9 @@ const innovationBaseSchema = z
     summary: z
       .string()
       .trim()
-      .min(20, "Ringkasan minimal 20 karakter.")
-      .max(500, "Ringkasan maksimal 500 karakter."),
+      .max(500, "Ringkasan maksimal 500 karakter.")
+      .refine((v) => v === "" || v.length >= 20, "Ringkasan minimal 20 karakter.")
+      .optional(),
     abstract: optionalText(5000),
     background: optionalText(5000),
     problemStatement: optionalText(5000),

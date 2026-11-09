@@ -23,6 +23,8 @@ type ItemRow = {
   lead_name: string | null;
   faculty_name: string | null;
   has_ip: boolean;
+  cover_id: string | null;
+  cover_alt: string | null;
 };
 
 function toItem(r: ItemRow): CatalogItem {
@@ -35,9 +37,9 @@ function toItem(r: ItemRow): CatalogItem {
     facultyName: r.faculty_name,
     year: r.year,
     hasIp: r.has_ip,
-    // Berkas sampul menunggu modul penyimpanan (StorageAdapter).
-    coverUrl: null,
-    coverAlt: null,
+    // Varian kecil untuk kartu. Hanya gambar publik yang pernah dipilih sebagai sampul.
+    coverUrl: r.cover_id ? `/api/v1/files/${r.cover_id}?v=thumb` : null,
+    coverAlt: r.cover_id ? r.cover_alt : null,
   };
 }
 
@@ -62,6 +64,10 @@ const ITEM_SELECT = sql`
     (select r.full_name from innovation_members m join researchers r on r.id = m.researcher_id
        where m.innovation_id = i.id and m.role = 'lead') as lead_name,
     f.name as faculty_name,
+    (select cf.id from innovation_files cf where cf.innovation_id = i.id and cf.is_cover
+       and cf.kind = 'image' and cf.visibility = 'public') as cover_id,
+    (select cf.alt_text from innovation_files cf where cf.innovation_id = i.id and cf.is_cover
+       and cf.kind = 'image' and cf.visibility = 'public') as cover_alt,
     exists (select 1 from intellectual_properties p where p.innovation_id = i.id) as has_ip
   from innovations i left join faculties f on f.id = i.faculty_id`;
 
@@ -221,6 +227,10 @@ export function createPgCatalogProvider(db: Database): CatalogProvider {
           (select r.full_name from innovation_members m join researchers r on r.id = m.researcher_id
              where m.innovation_id = i.id and m.role = 'lead') as lead_name,
           f.name as faculty_name,
+          (select cf.id from innovation_files cf where cf.innovation_id = i.id and cf.is_cover
+             and cf.kind = 'image' and cf.visibility = 'public') as cover_id,
+          (select cf.alt_text from innovation_files cf where cf.innovation_id = i.id and cf.is_cover
+             and cf.kind = 'image' and cf.visibility = 'public') as cover_alt,
           exists (select 1 from intellectual_properties p where p.innovation_id = i.id) as has_ip,
           t.name as type_name, sp.name as study_program_name,
           i.abstract, i.background, i.problem_statement, i.objective, i.methodology,
@@ -234,7 +244,7 @@ export function createPgCatalogProvider(db: Database): CatalogProvider {
       const r = rows[0];
       if (!r) return null;
 
-      const [members, publications, ips] = await Promise.all([
+      const [members, publications, ips, documents] = await Promise.all([
         db.execute<{ full_name: string; role: "lead" | "member" }>(sql`
           select r.full_name, m.role from innovation_members m
             join researchers r on r.id = m.researcher_id
@@ -248,10 +258,18 @@ export function createPgCatalogProvider(db: Database): CatalogProvider {
           sql`select kind, status, registration_number, year from intellectual_properties
               where innovation_id = ${r.id} order by created_at`,
         ),
+        db.execute<{ id: string; title: string | null; size_bytes: number }>(
+          sql`select id, title, size_bytes from innovation_files
+              where innovation_id = ${r.id} and kind = 'document' and visibility = 'public'
+              order by sort_order, created_at, id`,
+        ),
       ]);
 
       return {
         ...toItem(r),
+        // Halaman detail memakai varian penuh, bukan thumbnail kartu.
+        coverUrl: r.cover_id ? `/api/v1/files/${r.cover_id}` : null,
+        documents: documents.rows.map((d) => ({ id: d.id, title: d.title ?? "Dokumen", sizeBytes: Number(d.size_bytes) })),
         typeName: r.type_name,
         studyProgramName: r.study_program_name,
         abstract: r.abstract,

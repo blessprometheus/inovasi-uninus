@@ -31,6 +31,7 @@ const detail = (over: Partial<CatalogDetail> = {}): CatalogDetail => ({
     { name: "[DUMMY] Anggota", role: "member" },
     { name: "[DUMMY] Ketua", role: "lead" },
   ],
+  documents: [],
   publications: [],
   intellectualProperties: [],
   publishedAt: "2025-01-01T00:00:00.000Z",
