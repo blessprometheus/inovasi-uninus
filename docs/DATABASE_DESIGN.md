@@ -2,6 +2,8 @@
 
 Status: **DRAFT Fase 3, menunggu persetujuan.** Rancangan, bukan final. Field profil dari SSO belum diverifikasi (OQ-02). Migrasi dan seed dibuat di Fase 5, bukan sekarang.
 
+> **ADR-008 (2026-11-04):** migrasi `0001_local_auth` (aditif, tidak merusak data) menambah kolom login lokal di `users` (lihat bagian `users` di bawah) dan membuat `sso_subject` boleh kosong. `researchers.user_id` sudah nullable (peneliti bukan akun). Tabel `collaboration_requests` tetap ada di skema tetapi tidak dipakai (kolaborasi dihapus, D-19); tidak dihapus agar tidak ada migrasi destruktif. Enum status lama tetap ada tetapi tidak dapat dicapai. `innovations.summary` tetap NOT NULL; draft tanpa ringkasan menyimpan teks kosong.
+
 ## 1. Evaluasi Daftar Entitas dari Master Prompt (ADR-002)
 
 | Entitas di master prompt | Keputusan | Alasan |
@@ -62,7 +64,7 @@ erDiagram
 
 ### 4.1 Identitas dan akses
 
-**users**: `id`, `sso_subject` (unik, `sub` dari SSO), `email` (unik, huruf kecil), `name`, `is_active`, `last_login_at`, `deleted_at`.
+**users**: `id`, `sso_subject` (opsional, unik bila ada; kini hanya diisi login pengembangan `dev:...`), `email` (unik, huruf kecil), `name`, `password_hash` (argon2id; kosong = tidak bisa masuk lewat formulir), `password_changed_at`, `must_change_password`, `failed_login_count`, `locked_until`, `is_active`, `last_login_at`, `deleted_at`.
 **roles**: `id`, `code` (unik: `super_admin`, `operator`, `researcher`), `name`, `is_system`.
 **permissions**: `id`, `code` (unik, mis. `innovation.review`), `description`.
 **role_permissions**: (`role_id`, `permission_id`) PK gabungan.

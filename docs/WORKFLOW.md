@@ -1,61 +1,54 @@
-# WORKFLOW — Alur Verifikasi Inovasi
+# WORKFLOW — Alur Status Inovasi
 
-Status: **DRAFT Fase 3.** Dokumen ini adalah satu-satunya sumber kebenaran state machine. Implementasi di `modules/workflow` dan tes unit mengikuti tabel ini persis.
+Status: **REVISI 2026-11-04 (ADR-008, disetujui, sudah diimplementasikan).** Dokumen ini adalah satu-satunya sumber kebenaran state machine. Implementasi di `modules/workflow` dan tes unit mengikuti tabel ini persis.
+
+> **Perubahan dari versi sebelumnya:** alur verifikasi satu tingkat (Diajukan → Ditinjau → Revisi/Disetujui) dicabut karena hanya operator yang menginput (D-15, D-17). Versi lama masih ada di kode dan tes sampai perubahan kode disetujui; tabel di bawah adalah target.
 
 ## 1. Status
 
-`draft` → `submitted` → `under_review` → `approved` → `published`, dengan cabang `revision_required` dan `unpublished`.
+`draft` → `published`, dengan cabang `unpublished`.
 
 ```mermaid
 stateDiagram-v2
   [*] --> draft
-  draft --> submitted: Dosen mengajukan
-  submitted --> draft: Dosen menarik kembali
-  submitted --> under_review: Operator mulai memeriksa
-  under_review --> revision_required: Operator minta revisi (catatan wajib)
-  under_review --> approved: Operator setujui
-  revision_required --> submitted: Dosen kirim ulang
-  approved --> published: Operator publikasikan
-  published --> unpublished: Operator tarik (alasan wajib)
-  unpublished --> published: Operator publikasikan lagi
-  unpublished --> draft: Operator kembalikan untuk diedit
+  draft --> published: Operator menerbitkan
+  published --> unpublished: Operator menarik (alasan wajib)
+  unpublished --> published: Operator menerbitkan lagi
+  unpublished --> draft: Operator mengembalikan untuk diedit
 ```
+
+Nilai enum `submitted`, `under_review`, `approved`, `revision_required` tetap ada di database (menghindari migrasi destruktif dan agar portal dosen bisa dibuka lagi, D-20), tetapi **tidak dapat dicapai** lewat state machine ini. Data lama dengan status tersebut (bila ada di lingkungan mana pun) harus dipindahkan ke `draft` oleh skrip migrasi sebelum aturan ini aktif.
 
 ## 2. Tabel Transisi
 
 | Dari | Ke | Aktor | Syarat | Catatan wajib |
 |---|---|---|---|---|
-| draft | submitted | pemilik | Field wajib lengkap (judul, ringkasan, kategori, ketua peneliti) | tidak |
-| submitted | draft | pemilik | Belum `under_review` | tidak |
-| submitted | under_review | operator, super admin | Bukan pemilik pengajuan sendiri | tidak |
-| under_review | revision_required | operator, super admin | | **ya** |
-| under_review | approved | operator, super admin | Bukan pemilik pengajuan sendiri | tidak |
-| revision_required | submitted | pemilik | Field wajib lengkap | tidak |
-| approved | published | operator, super admin | | tidak |
+| draft | published | operator, super admin | Field wajib lengkap (judul, ringkasan, kategori, ketua peneliti) | tidak |
 | published | unpublished | operator, super admin | | **ya** |
-| unpublished | published | operator, super admin | | tidak |
+| unpublished | published | operator, super admin | Field wajib lengkap | tidak |
 | unpublished | draft | operator, super admin | | tidak |
 
 Semua pasangan lain **ditolak** dengan error `INVALID_TRANSITION` (HTTP 409) dan dicatat di audit log sebagai percobaan gagal.
 
 ## 3. Aturan
 
-1. **Pemisahan tugas:** operator yang juga pemilik pengajuan tidak boleh memeriksa atau menyetujui pengajuannya sendiri; harus operator/super admin lain.
-2. **Penguncian edit:** pemilik hanya dapat mengedit saat `draft` atau `revision_required`. Saat `submitted`, `under_review`, `approved`, dan `published`, isi tidak dapat diedit pemilik.
+1. **Draft cukup judul** (min. 5 karakter). Ringkasan boleh kosong (disimpan sebagai teks kosong; kolomnya tetap NOT NULL) tetapi bila diisi minimal 20 dan maksimal 500 karakter. Ringkasan, kategori, dan ketua peneliti wajib lengkap saat terbit (keputusan pengguna 2026-11-04).
+2. **Penguncian edit:** tidak ada penguncian berdasarkan pemilik. Operator dapat mengedit di status apa pun. Suntingan atas inovasi `published` langsung tampil di publik, jadi setiap suntingan dicatat di audit log (nama field yang berubah, bukan isinya). Lihat OQ-23.
 3. **Atomik:** perubahan `status` dan penulisan `status_histories` dalam satu transaksi.
 4. **Visibilitas publik:** hanya `published` (dan `deleted_at IS NULL`) tampil di katalog, detail, sitemap, dan pencarian. Status lain mengembalikan 404 di rute publik.
 5. **Slug:** dikunci pada saat pertama kali `published` (`first_published_at`), tidak berubah meski judul diedit.
 6. **Efek samping saat `published`/`unpublished`:** invalidasi cache tag halaman terkait, pembaruan `sitemap.xml`, entri audit log.
-7. **Notifikasi email** (P1): pemilik diberi tahu saat `revision_required`, `approved`, `published`.
-8. **Penghapusan:** pemilik dapat menghapus (soft delete) hanya saat `draft`. Operator/super admin dapat menghapus status apa pun dengan alasan; inovasi `published` harus ditarik dulu.
+7. **Tanpa notifikasi email:** tidak ada pihak lain yang perlu diberi tahu (D-15).
+8. **Penghapusan:** operator/super admin dapat menghapus (soft delete) status apa pun dengan alasan; inovasi `published` harus ditarik dulu.
+9. **Pemisahan tugas dicabut:** tidak ada lagi aturan "bukan pemilik pengajuan sendiri", karena tidak ada pemilik non-operator. Kompensasinya: audit log wajib dan akun operator pribadi per orang (tidak berbagi akun).
 
-## 4. Edit Inovasi yang Sudah Terpublikasi (OQ-13, perlu keputusan)
+## 4. Edit Inovasi yang Sudah Terpublikasi
 
-Rekomendasi: dosen tidak mengedit langsung. Dosen menekan "Ajukan perubahan", operator mengembalikan ke `draft` (via `unpublished → draft`), dosen mengedit dan mengirim ulang. Konsekuensi: inovasi tidak tampil selama proses revisi. Alternatif (belum direkomendasikan karena menambah kompleksitas): menyimpan draf revisi terpisah dari versi terbit sehingga versi lama tetap tampil.
+Operator mengedit langsung (OQ-13 ditutup). Tidak perlu menarik dulu. Bila perubahan besar dan ingin disembunyikan sementara, operator menarik (`unpublished`), mengedit, lalu menerbitkan lagi.
 
 ## 5. Pengujian Wajib
 
-- Tabel transisi: setiap pasangan (dari, ke) × setiap aktor, termasuk pasangan yang harus ditolak.
-- Pemisahan tugas (aturan 1) dan penguncian edit (aturan 2).
+- Tabel transisi: setiap pasangan (dari, ke) × setiap aktor, termasuk pasangan yang harus ditolak (khususnya semua pasangan yang melibatkan status lama).
+- Syarat field wajib saat terbit, dan draft minimal tetap bisa disimpan.
 - Atomisitas: kegagalan menulis histori membatalkan perubahan status.
 - Rute publik mengembalikan 404 untuk semua status selain `published`.

@@ -2,23 +2,23 @@
 
 Status: **DRAFT Fase 3, menunggu persetujuan.** Keputusan dan alasannya ada di `DECISIONS.md` (ADR-001 sampai ADR-006). Item bertanda **[ASUMSI]** bergantung pada open question yang belum dijawab.
 
+> **Catatan ADR-008 (2026-11-04, disetujui):** §4 (autentikasi) yang membahas OIDC/SSO tidak berlaku. Penggantinya login lokal email + kata sandi (argon2id) untuk operator/super admin, dengan sesi opaque di database yang sama. Portal dosen dan modul kolaborasi tidak ada di MVP. Bagian ini akan ditulis ulang saat kode diubah.
+
 ## 1. Konteks
 
 ```mermaid
 flowchart LR
   V[Pengunjung] -->|HTTPS| N
-  D[Dosen] -->|HTTPS| N
   O[Operator / Super Admin] -->|HTTPS| N
   subgraph VPS["VPS Ubuntu 24 (aaPanel), server bersama"]
     N[Nginx<br/>TLS, rate limit, cache statis] --> A[Aplikasi Next.js<br/>1 proses Node.js, dikelola PM2]
     A --> P[(PostgreSQL)]
     A --> F[/Folder file di luar web root/]
   end
-  A <-->|OAuth2 / OIDC, PKCE| S[SSO UNINUS<br/>Laravel Passport, Google Workspace]
   A -.->|SMTP, P1| M[Layanan email]
 ```
 
-Batas sistem: platform ini tidak menyimpan password. Identitas dosen datang dari SSO. Data inovasi hanya ada di database dan folder file platform ini.
+Batas sistem: tidak ada SSO. Platform ini menyimpan hash kata sandi (argon2id) hanya untuk operator dan super admin. Peneliti adalah data tanpa akun. Data inovasi hanya ada di database dan folder file platform ini.
 
 ## 2. Gaya Arsitektur (ADR-001): satu aplikasi, berlapis
 
@@ -58,33 +58,31 @@ Aturan ketergantungan (ditegakkan lewat lint): `app` → `modules` → `platform
 | Log | `pino` JSON ke file + logrotate | |
 | Test | Vitest (unit/integrasi), Playwright (E2E) | Integrasi memakai PostgreSQL asli (bukan mock) |
 
-## 4. Autentikasi dan Sesi (ADR-004)
+## 4. Autentikasi dan Sesi (ADR-004, direvisi ADR-008)
 
-Alur Authorization Code + PKCE ke SSO:
+Login lokal email + kata sandi untuk operator dan super admin. Tidak ada SSO dan tidak ada login dosen.
 
 ```mermaid
 sequenceDiagram
   participant B as Browser
   participant A as Aplikasi
-  participant S as SSO UNINUS
-  B->>A: GET /api/v1/auth/login
-  A->>A: buat state, nonce, code_verifier (disimpan di cookie sementara httpOnly)
-  A-->>B: 302 ke SSO /oauth/authorize
-  B->>S: login Google @uninus.ac.id + consent
-  S-->>B: 302 ke /api/v1/auth/callback?code&state
-  B->>A: callback
-  A->>S: POST /oauth/token (code + verifier, dari server)
-  A->>S: GET /oauth/userinfo
-  A->>A: upsert users + researchers dari klaim, buat sesi
-  A-->>B: Set-Cookie sesi, 302 ke dashboard
+  participant D as PostgreSQL
+  B->>A: POST /api/v1/auth/login {email, password} (Origin diperiksa)
+  A->>A: pembatas laju (per email dan total)
+  A->>D: cari akun, cek aktif dan kunci
+  A->>A: verifikasi argon2id (hash palsu bila akun tidak ada/terkunci)
+  A->>D: reset atau tambah hitungan gagal, catat audit
+  A->>D: buat sesi (hanya hash token), cabut sesi lama
+  A-->>B: Set-Cookie sesi (HttpOnly, SameSite=Lax), mustChangePassword?
 ```
 
 - Sesi **opaque** disimpan di tabel `sessions` (hanya hash token yang disimpan). Bisa dicabut kapan saja, tidak butuh Redis.
 - Cookie: `__Host-` prefix, `HttpOnly`, `Secure`, `SameSite=Lax`, masa berlaku dan idle timeout ditentukan di `SECURITY.md`.
-- Token SSO tidak diteruskan ke browser. Aplikasi hanya butuh identitas saat login, jadi refresh token tidak disimpan **[ASUMSI]**.
-- Role platform disimpan lokal (`user_roles`). Dosen otomatis mendapat role `researcher` bila klaim SSO menunjukkan role dosen. Role Operator dan Super Admin hanya diberikan lokal. **[ASUMSI sampai OQ-03 dijawab]**
-- Super Admin pertama dibuat lewat perintah CLI satu kali (`email` dari variabel environment), bukan dari UI.
-- Hanya dibuka akun yang diterima SSO. Platform tidak membuka jalur login alternatif di produksi.
+- Mekanisme sesi, CSRF, dan cookie tidak berubah dari rancangan awal; yang diganti hanya cara membuktikan identitas.
+- Role platform disimpan lokal (`user_roles`) dan hanya diberikan oleh super admin (`operator` atau `super_admin`).
+- Super Admin pertama dibuat lewat `npm run admin:create` di server, bukan dari UI. Selanjutnya dari halaman Akun.
+- Akun dengan sandi sementara hanya dapat memakai halaman dan API ganti sandi sampai menggantinya.
+- Rincian kontrol keamanan (hash, penguncian, pembatas laju, pesan seragam) ada di `SECURITY.md` §2. Kode: `platform/auth/` (`local-auth`, `password`, `handlers`), `modules/users/`.
 
 ## 5. Otorisasi (RBAC)
 
@@ -119,4 +117,4 @@ Log terstruktur dengan request id, endpoint `/api/health` (cek DB), cek uptime e
 
 - Server bersama dan jenuh (OQ-01): batasi memori proses Node (`--max-old-space-size`), satu instance, tidak ada layanan baru (Redis, ClamAV, Elasticsearch) tanpa persetujuan.
 - Single instance berarti rate limit dalam-memori cukup, tetapi tidak bertahan saat restart. Rate limit utama ditaruh di Nginx.
-- Ketergantungan pada SSO: bila SSO mati, login tidak bisa, tetapi seluruh halaman publik tetap berjalan.
+- Login bergantung pada database aplikasi saja (tanpa layanan eksternal). Bila database mati, halaman yang butuh data ikut mati.

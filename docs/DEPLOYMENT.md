@@ -2,6 +2,14 @@
 
 Status: **DRAFT arsitektur Fase 3.** Belum ada deployment. Dilarang mengubah server produksi tanpa persetujuan eksplisit pengguna (`AGENTS.md` §12). Panduan langkah-demi-langkah dilengkapi di Fase 7.
 
+> **ADR-008 (2026-11-04):** variabel klien OIDC (`SSO_*`) dan `INITIAL_SUPER_ADMIN_EMAIL` tidak lagi diperlukan. `RESEARCHER_PORTAL` (default tidak diset = mati) menyalakan portal dosen. **Flag ini dibaca saat build untuk halaman `/dosen` (rute API membacanya saat request)**, jadi mengubahnya berarti build ulang. Biarkan mati di produksi.
+>
+> **Urutan menyiapkan akun pertama di server:** `npm run db:migrate`, `npm run db:seed`, lalu `npm run admin:create -- --email <email> --name "<nama>"` (sandi diketik tersembunyi). Perintah yang sama dengan `--reset` mengatur ulang sandi bila terkunci total. Jangan memakai login dev (`DEV_LOGIN` harus mati).
+>
+> **`argon2` dan `sharp` adalah modul native:** jalankan `npm ci` dan `npm run build` di server (Linux x64) supaya prebuild yang benar terpasang. Jangan menyalin `.next/standalone` yang dibangun di Windows ke server.
+>
+> **Berkas unggahan:** folder `STORAGE_PATH` wajib masuk jadwal backup bersama database (bagian Backup di SECURITY.md; satu tanpa yang lain tidak bisa dipulihkan), dan dipantau pemakaian disk dan inodenya (OQ-01). Setiap gambar menghasilkan 2 berkas, setiap PDF 1.
+
 ## 1. Lingkungan Target
 
 VPS Ubuntu 24 dengan aaPanel (4 core, 7,7 GB RAM, disk 154 GB), dikelola pengguna, **dipakai bersama website lain**. Domain produksi `inovasi.uninus.ac.id`.
@@ -42,7 +50,7 @@ Staging memakai server yang sama akan menambah beban (OQ-01). Alternatif: stagin
 
 Nilai asli tidak pernah di repo. `.env.example` memuat nama berikut:
 
-`APP_ENV`, `APP_URL`, `DATABASE_URL`, `AUTH_SECRET` (min. 32 karakter acak, beda per lingkungan), `SSO_ISSUER_URL`, `SSO_CLIENT_ID`, `SSO_CLIENT_SECRET`, `SSO_REDIRECT_URI`, `STORAGE_PATH`, `UPLOAD_MAX_IMAGE_MB`, `UPLOAD_MAX_DOC_MB`, `SMTP_*` (P1), `INITIAL_SUPER_ADMIN_EMAIL`.
+`APP_ENV`, `APP_URL`, `DATABASE_URL`, `AUTH_SECRET` (min. 32 karakter acak, beda per lingkungan), `STORAGE_PATH` (path absolut **di luar** folder aplikasi dan web root, dapat ditulis pengguna proses Node), `UPLOAD_MAX_IMAGE_MB` (bawaan 5), `UPLOAD_MAX_DOC_MB` (bawaan 20), `SMTP_*` (P1), `RESEARCHER_PORTAL` (opsional, biarkan kosong).
 
 ## 5. Build dan Rilis
 
@@ -75,13 +83,12 @@ HTTPS dengan pembaruan sertifikat otomatis, firewall hanya membuka 80/443/SSH (S
 ## 9. Go-Live Checklist (dilengkapi di Fase 7)
 
 - [ ] Empat syarat di §1 beres
-- [ ] Client OAuth produksi terdaftar di SSO, redirect URI diuji
-- [ ] Super Admin pertama dibuat lewat CLI
+- [ ] Super Admin pertama dibuat lewat `npm run admin:create`; masuk lewat `/masuk` berhasil; operator uji dibuat dari halaman Akun dan wajib mengganti sandi sementara
 - [ ] Backup + uji restore berhasil
 - [ ] Header keamanan, HTTPS, rate limit terverifikasi
 - [ ] Seluruh tes (unit, integrasi, E2E, otorisasi, aksesibilitas) lulus
 - [ ] Pratinjau berbagi (Open Graph/Twitter) dicek di URL produksi dengan alat validator platform (Facebook Sharing Debugger, validator schema.org). Gambar berbagi masih logo kecil 73x100 (OQ-04); ganti saat logo besar tersedia
 - [ ] Sitemap, robots, metadata diverifikasi di URL produksi (`/robots.txt` harus `Allow: /` dan berisi `Sitemap:`; `/sitemap.xml` memakai domain produksi). Pastikan `APP_ENV=production` dan `APP_URL` terisi di server.
 - [ ] `AUTH_SECRET` terisi; `DEV_LOGIN` **tidak** ada di environment staging/produksi (bila ada, semua request menjawab 500)
-- [ ] Rencana onboarding dosen siap (katalog kosong saat awal)
+- [ ] Rencana pengisian awal oleh operator siap (katalog kosong saat awal), termasuk formulir persetujuan dosen (OQ-28)
 - [ ] Persetujuan tertulis pengguna untuk rilis produksi

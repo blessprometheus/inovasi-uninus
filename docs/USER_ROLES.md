@@ -1,6 +1,6 @@
 # USER ROLES — RBAC
 
-Status: **DRAFT Fase 3.** Pemetaan role SSO belum final (OQ-03), ditandai **[ASUMSI]**.
+Status: **REVISI 2026-11-04 (ADR-008, disetujui).** Tanpa SSO dan tanpa login dosen: hanya `operator` dan `super_admin` yang punya akun (D-15, D-16). Role `researcher` dan permission `_own` tetap didefinisikan, tetapi dinonaktifkan oleh feature flag `RESEARCHER_PORTAL` (default mati, D-20). Permission `collaboration.*` dicabut (D-19). Catatan kode: `permissions.ts` masih memuat `innovation.review` dan izin `_own` untuk portal dosen yang tertidur; alur operator tidak memakainya.
 
 ## 1. Model
 
@@ -12,11 +12,11 @@ Permission berakhiran `_own` berlaku hanya untuk resource milik pengguna (pengaj
 
 | Role (`code`) | Cara diperoleh |
 |---|---|
-| `researcher` | Otomatis saat login SSO pertama bila klaim SSO menunjukkan dosen **[ASUMSI]** |
-| `operator` | Diberikan Super Admin lewat UI |
+| `researcher` | **Nonaktif.** Hanya berlaku bila `RESEARCHER_PORTAL` dinyalakan di masa depan. Tidak ada cara memperolehnya sekarang |
+| `operator` | Akun dibuat oleh Super Admin lewat UI (login lokal, lihat ADR-008) |
 | `super_admin` | Akun pertama lewat perintah CLI satu kali, selanjutnya diberikan Super Admin lain |
 
-Seorang pengguna dapat memegang lebih dari satu role (mis. dosen sekaligus operator).
+Seorang pengguna dapat memegang lebih dari satu role. Satu akun per orang; akun tidak boleh dibagi karena audit log dan pencabutan akses bergantung padanya.
 
 ## 3. Matriks Permission
 
@@ -25,30 +25,25 @@ Seorang pengguna dapat memegang lebih dari satu role (mis. dosen sekaligus opera
 | Permission | Pengunjung | researcher | operator | super_admin |
 |---|:-:|:-:|:-:|:-:|
 | `public.read` (katalog, detail, peneliti terpublikasi) | ✔ | ✔ | ✔ | ✔ |
-| `collaboration.create` (kirim permintaan) | ✔ | ✔ | ✔ | ✔ |
-| `profile.update_own` | — | ✔ | ✔ | ✔ |
 | `innovation.create` | — | ✔ | ✔ | ✔ |
-| `innovation.read_own` | — | ○ | ○ | ○ |
-| `innovation.update_own` (saat draft/revision_required) | — | ○ | ○ | ○ |
-| `innovation.submit_own`, `innovation.withdraw_own` | — | ○ | ○ | ○ |
-| `innovation.delete_own` (saat draft) | — | ○ | ○ | ○ |
-| `file.manage_own` | — | ○ | ○ | ○ |
 | `innovation.read_any` | — | — | ✔ | ✔ |
 | `innovation.update_any` | — | — | ✔ | ✔ |
-| `innovation.review` (mulai periksa, revisi, setujui) | — | — | ✔ | ✔ |
-| `innovation.publish` (publikasi, tarik) | — | — | ✔ | ✔ |
+| `innovation.publish` (terbit, tarik, terbit ulang) | — | — | ✔ | ✔ |
 | `innovation.delete_any` | — | — | ✔ | ✔ |
-| `researcher.manage` | — | — | ✔ | ✔ |
+| `researcher.manage` (CRUD profil peneliti) | — | — | ✔ | ✔ |
 | `taxonomy.manage` (fakultas, prodi, kategori, jenis) | — | — | ✔ | ✔ |
 | `file.manage_any` | — | — | ✔ | ✔ |
-| `collaboration.read`, `collaboration.handle` | — | — | ✔ | ✔ |
+| ~~`innovation.review`~~ (dicabut: tidak ada tahap tinjauan) | — | — | — | — |
+| ~~`collaboration.*`~~ (dicabut, D-19) | — | — | — | — |
+| `profile.update_own`, `innovation.*_own`, `file.manage_own` (**nonaktif** di balik `RESEARCHER_PORTAL`) | — | ○ | — | — |
 | `user.manage` (aktif/nonaktif pengguna) | — | — | — | ✔ |
 | `role.assign` | — | — | — | ✔ |
 | `settings.manage` | — | — | — | ✔ |
 | `audit.read` | — | — | — | ✔ |
 
 Aturan tambahan di luar tabel:
-- **Pemisahan tugas:** `innovation.review` tidak berlaku pada pengajuan milik pengguna itu sendiri (lihat `WORKFLOW.md`).
+- **Pemisahan tugas dicabut** (lihat `WORKFLOW.md` aturan 9); digantikan audit log wajib.
+- Pembuat inovasi (`created_by`) adalah operator yang menginput, bukan ketua peneliti. Ketua dan anggota hanya data tampilan.
 - Super Admin tidak boleh mencabut role `super_admin` miliknya bila ia satu-satunya.
 - Pemberian dan pencabutan role selalu masuk audit log.
 

@@ -2,6 +2,8 @@
 
 Status: **DISETUJUI pengguna (2026-11-03).** Tidak ada kode UI sebelum dokumen ini disetujui. Rekomendasi diambil dari pencarian skill `ui-ux-pro-max` (domain `product/style/typography/ux`, stack `shadcn`) dan **disesuaikan** dengan keputusan pengguna (D-04). Bila ada perbedaan, keputusan pengguna menang.
 
+> **Catatan ADR-008 (2026-11-04, disetujui):** wireframe dashboard dosen, formulir kolaborasi, dan antrean peninjauan tidak berlaku. Yang berlaku untuk admin: daftar inovasi dengan filter Draft/Terbit/Ditarik, formulir input dengan simpan draft, halaman CRUD peneliti, dan halaman login operator. Token warna dan komponen publik tidak berubah.
+
 ## 1. Arah Visual
 
 **Modern academic institution, clean editorial, minimalis.** Pola dari skill: *Minimalism & Swiss Style* (grid, whitespace, kontras tinggi, fungsional) dan pola halaman *Portfolio Grid* (visual dahulu, filter kategori, cepat dimuat), cocok untuk katalog inovasi.
