@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Globe, PencilLine, Play, Trash2, Undo2, EyeOff } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiRequest } from "@/components/api-client";
@@ -26,6 +27,7 @@ export function ReviewPanel({
   canReview,
   canPublish,
   canDelete,
+  canEdit,
   isOwnSubmission,
 }: {
   id: string;
@@ -34,6 +36,7 @@ export function ReviewPanel({
   canReview: boolean;
   canPublish: boolean;
   canDelete: boolean;
+  canEdit: boolean;
   isOwnSubmission: boolean;
 }) {
   const router = useRouter();
@@ -55,7 +58,8 @@ export function ReviewPanel({
     });
     setBusy(false);
     if (!result.ok) {
-      setError(result.details[0]?.message ?? result.message);
+      // Gagal terbit karena data belum lengkap: tampilkan semua yang kurang sekaligus.
+      setError(result.details.length ? result.details.map((d) => d.message).join(" ") : result.message);
       return false;
     }
     setDone(successText ?? "Status diperbarui.");
@@ -80,7 +84,7 @@ export function ReviewPanel({
       setBusy(false);
       return;
     }
-    router.replace("/admin");
+    router.replace("/admin/inovasi");
     router.refresh();
   }
 
@@ -96,10 +100,17 @@ export function ReviewPanel({
   return (
     <aside aria-labelledby="keputusan" className="rounded-card border border-border bg-surface p-5">
       <h2 id="keputusan" className="text-xl font-semibold">
-        Keputusan
+        Tindakan
       </h2>
 
       <div className="mt-4 space-y-4">
+        {canEdit ? (
+          <Link href={`/admin/inovasi/${id}/edit`} className={OUTLINE}>
+            <PencilLine className="size-5" aria-hidden="true" />
+            Edit isi
+          </Link>
+        ) : null}
+
         {reviewBlocked ? (
           <p role="note" className="rounded-control bg-primary-tint p-3 text-sm">
             Ini pengajuan Anda sendiri. Operator lain yang harus memeriksa dan menyetujuinya (pemisahan tugas).
@@ -163,7 +174,17 @@ export function ReviewPanel({
         {status === "revision_required" ? (
           <p className="text-sm text-muted-foreground">Menunggu dosen memperbaiki dan mengajukan ulang.</p>
         ) : null}
-        {status === "draft" ? <p className="text-sm text-muted-foreground">Masih draft milik dosen.</p> : null}
+        {status === "draft" ? (
+          <>
+            <p className="text-sm text-muted-foreground">Draft belum tampil di publik. Terbitkan setelah datanya lengkap.</p>
+            {canPublish ? (
+              <button type="button" disabled={busy} onClick={() => transition("published", undefined, "Inovasi diterbitkan.")} className={PRIMARY}>
+                <Globe className="size-5" aria-hidden="true" />
+                Terbitkan
+              </button>
+            ) : null}
+          </>
+        ) : null}
 
         {status === "approved" && canPublish ? (
           <>
@@ -192,7 +213,7 @@ export function ReviewPanel({
               <Globe className="size-5" aria-hidden="true" />
               Terbitkan kembali
             </button>
-            <button type="button" disabled={busy} onClick={() => transition("draft", undefined, "Dikembalikan ke dosen sebagai draft.")} className={OUTLINE}>
+            <button type="button" disabled={busy} onClick={() => transition("draft", undefined, "Dikembalikan ke draft.")} className={OUTLINE}>
               <Undo2 className="size-5" aria-hidden="true" />
               Kembalikan ke draft
             </button>
@@ -209,7 +230,7 @@ export function ReviewPanel({
               className={`${BTN} border border-destructive text-destructive hover:bg-background`}
             >
               <Trash2 className="size-5" aria-hidden="true" />
-              Hapus pengajuan
+              Hapus inovasi
             </button>
             {status === "published" ? (
               <p id="alasan-hapus" className="mt-2 text-sm text-muted-foreground">
@@ -232,7 +253,7 @@ export function ReviewPanel({
       <ConfirmDialog
         open={dialog === "unpublish"}
         title="Tarik dari publik?"
-        description="Inovasi langsung hilang dari katalog, pencarian, dan sitemap. Dosen dapat membaca catatan Anda."
+        description="Inovasi langsung hilang dari katalog, pencarian, dan sitemap. Alasan Anda tercatat di riwayat."
         confirmLabel="Tarik dari publik"
         busy={busy}
         error={dialog === "unpublish" ? error : null}
@@ -245,9 +266,9 @@ export function ReviewPanel({
 
       <ConfirmDialog
         open={dialog === "delete"}
-        title="Hapus pengajuan ini?"
-        description="Pengajuan hilang dari semua daftar. Riwayat status dan catatan alasan tetap tersimpan untuk penelusuran."
-        confirmLabel="Hapus pengajuan"
+        title="Hapus inovasi ini?"
+        description="Inovasi hilang dari semua daftar. Riwayat status dan catatan alasan tetap tersimpan untuk penelusuran."
+        confirmLabel="Hapus inovasi"
         destructive
         busy={busy}
         error={dialog === "delete" ? error : null}

@@ -11,16 +11,16 @@ export const metadata: Metadata = pageMetadata({
 
 const STEPS = [
   {
-    title: "Dosen mengajukan",
-    body: "Dosen masuk dengan akun SSO UNINUS, mengisi data inovasi, lalu mengajukannya untuk diverifikasi.",
+    title: "Dosen menyerahkan berkas",
+    body: "Dosen peneliti menyerahkan berkas inovasinya kepada operator katalog.",
   },
   {
     title: "Operator memverifikasi",
-    body: "Operator memeriksa kelengkapan dan kelayakan. Inovasi bisa disetujui, atau dikembalikan dengan catatan untuk diperbaiki.",
+    body: "Operator memeriksa kelengkapan dan kelayakan berkas, lalu memasukkan datanya ke sistem.",
   },
   {
     title: "Dipublikasikan",
-    body: "Hanya inovasi yang sudah disetujui dan dipublikasikan yang tampil di katalog ini.",
+    body: "Operator menerbitkan inovasi yang sudah diverifikasi. Hanya yang sudah terbit yang tampil di katalog ini.",
   },
 ] as const;
 
@@ -38,8 +38,8 @@ export default function AboutPage() {
           </p>
           <p>
             Setiap inovasi dilengkapi informasi tim peneliti, publikasi, dan status kekayaan
-            intelektual bila ada, sehingga calon mitra dapat menilai dan menghubungi pihak yang
-            tepat.
+            intelektual bila ada, sehingga calon mitra dapat menilai inovasi dan mengenali
+            peneliti di baliknya.
           </p>
         </div>
 

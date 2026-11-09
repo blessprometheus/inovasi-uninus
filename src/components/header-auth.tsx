@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { csrfTokenFor, getCurrentSession } from "@/platform/auth/current";
+import { isResearcherPortalEnabled } from "@/platform/config/features";
 import { UserMenu } from "./user-menu";
 
 /** Bagian header yang bergantung pada sesi. Dibungkus Suspense di SiteHeader (Cache Components). */
@@ -28,7 +29,7 @@ export async function HeaderAuth() {
     <UserMenu
       name={session.user.name}
       csrf={csrf}
-      showDashboard={session.user.permissions.has("innovation.create")}
+      showDashboard={isResearcherPortalEnabled() && session.user.permissions.has("innovation.create")}
       showAdmin={session.user.permissions.has("innovation.read_any")}
     />
   );

@@ -46,6 +46,12 @@ export function UserMenu({
           Admin
         </Link>
       ) : null}
+      <Link
+        href="/akun/kata-sandi"
+        className="inline-flex min-h-11 items-center rounded-control px-3 text-sm font-semibold text-foreground transition-colors hover:bg-primary-tint hover:text-primary"
+      >
+        Kata sandi
+      </Link>
       <span className="hidden max-w-[10rem] truncate text-sm text-muted-foreground lg:inline" title={name}>
         {name}
       </span>

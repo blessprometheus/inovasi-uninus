@@ -3,9 +3,9 @@ import { Suspense } from "react";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { csrfTokenFor, requireSession } from "@/platform/auth/current";
 import { getResearcherLookup } from "@/platform/auth/runtime";
-import { loadFormRefs } from "../form-data";
-import { EMPTY_VALUES } from "../form-types";
-import { InnovationForm } from "../innovation-form";
+import { loadFormRefs } from "@/components/innovation-form/form-data";
+import { EMPTY_VALUES } from "@/components/innovation-form/form-types";
+import { InnovationForm } from "@/components/innovation-form/innovation-form";
 
 export const metadata: Metadata = {
   title: "Ajukan Inovasi",

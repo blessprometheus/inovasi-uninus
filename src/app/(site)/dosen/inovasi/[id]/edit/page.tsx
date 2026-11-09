@@ -6,8 +6,8 @@ import { toAuthUser } from "@/modules/auth/auth-user";
 import { isOwnerEditable } from "@/modules/workflow/transitions";
 import { csrfTokenFor, requireSession } from "@/platform/auth/current";
 import { getInnovationService } from "@/platform/auth/runtime";
-import { loadFormRefs, toFormValues } from "../../form-data";
-import { InnovationForm } from "../../innovation-form";
+import { loadFormRefs, toFormValues } from "@/components/innovation-form/form-data";
+import { InnovationForm } from "@/components/innovation-form/innovation-form";
 
 export const metadata: Metadata = {
   title: "Edit Inovasi",

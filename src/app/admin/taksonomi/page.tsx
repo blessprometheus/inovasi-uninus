@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { AdminNav } from "@/components/admin-nav";
 import { EmptyState } from "@/components/catalog-ui";
 import { toAuthUser } from "@/modules/auth/auth-user";
 import { TAXONOMY_KINDS, type TaxonomyKind } from "@/modules/taxonomy/service";
@@ -26,9 +25,6 @@ export default function TaxonomyPage({ searchParams }: PageProps<"/admin/taksono
     <main id="konten" className="flex-1">
       <div className="mx-auto max-w-[1440px] px-4 py-10 sm:px-6 lg:px-8">
         <h1 className="text-balance text-3xl font-bold">Admin</h1>
-        <div className="mt-4">
-          <AdminNav current="taksonomi" />
-        </div>
         <Suspense fallback={<div className="mt-8 h-64 animate-pulse rounded-card bg-border" aria-hidden="true" />}>
           <Content searchParams={searchParams} />
         </Suspense>

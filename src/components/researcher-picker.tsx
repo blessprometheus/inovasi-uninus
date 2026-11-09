@@ -28,6 +28,7 @@ export function ResearcherPicker({
   hint,
   error,
   inputId,
+  searchPath = "/api/v1/me/researchers",
 }: {
   label: string;
   selected: Person[];
@@ -37,6 +38,8 @@ export function ResearcherPicker({
   hint?: string;
   error?: string;
   inputId: string;
+  /** Endpoint pencarian. Operator memakai daftar admin, yang juga memuat profil non-publik. */
+  searchPath?: string;
 }) {
   const uid = useId();
   const [query, setQuery] = useState("");
@@ -54,14 +57,14 @@ export function ResearcherPicker({
     if (term.length < 2) return;
     let cancelled = false;
     const timer = setTimeout(async () => {
-      const response = await apiRequest<Option[]>("GET", `/api/v1/me/researchers?q=${encodeURIComponent(term)}`);
+      const response = await apiRequest<Option[]>("GET", `${searchPath}?q=${encodeURIComponent(term)}`);
       if (!cancelled) setResult({ term, options: response.ok ? response.data : [], failed: !response.ok });
     }, 300);
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [term]);
+  }, [term, searchPath]);
 
   const taken = new Set([...selected.map((s) => s.id), ...excludeIds]);
   const visible = options.filter((o) => !taken.has(o.id));

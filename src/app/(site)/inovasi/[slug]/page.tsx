@@ -7,7 +7,7 @@ import { JsonLd } from "@/components/json-ld";
 import { breadcrumbJsonLd, innovationJsonLd } from "@/modules/seo/json-ld";
 import { pageMetadata } from "@/modules/seo/metadata";
 import { getSiteUrl } from "@/platform/config/site";
-import { CoverPlaceholder } from "@/components/catalog-ui";
+import { Cover } from "@/components/catalog-ui";
 import { getCatalogProvider } from "@/modules/catalog/providers";
 import type { CatalogDetail } from "@/modules/catalog/types";
 
@@ -131,7 +131,7 @@ async function Detail({ params }: Pick<PageProps<"/inovasi/[slug]">, "params">) 
       <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
         <article className="min-w-0">
           <div className="overflow-hidden rounded-card border border-border">
-            <CoverPlaceholder />
+            <Cover url={item.coverUrl} alt={item.coverAlt} priority />
           </div>
           <p className="mt-6 text-lg text-foreground/90">{item.summary}</p>
           {sections
@@ -167,6 +167,28 @@ async function Detail({ params }: Pick<PageProps<"/inovasi/[slug]">, "params">) 
                   <li key={`${ip.kind}-${i}`}>
                     <span className="block font-semibold">{ip.kind}</span>
                     {[ip.status, ip.registrationNumber, ip.year].filter(Boolean).join(" · ")}
+                  </li>
+                ))}
+              </ul>
+            </SidePanel>
+          ) : null}
+
+          {item.documents.length > 0 ? (
+            <SidePanel title="Dokumen">
+              <ul className="flex flex-col gap-3">
+                {item.documents.map((d) => (
+                  <li key={d.id}>
+                    <a
+                      href={`/api/v1/files/${d.id}`}
+                      target="_blank"
+                      rel="noopener"
+                      className="font-semibold text-primary underline-offset-4 hover:underline"
+                    >
+                      {d.title}
+                    </a>
+                    <span className="block text-sm text-muted-foreground">
+                      PDF · {d.sizeBytes >= 1024 * 1024 ? `${(d.sizeBytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(d.sizeBytes / 1024))} KB`}
+                    </span>
                   </li>
                 ))}
               </ul>

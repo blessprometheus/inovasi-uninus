@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { loadFormRefs } from "@/app/dosen/inovasi/form-data";
-import { AdminNav } from "@/components/admin-nav";
+import { loadFormRefs } from "@/components/innovation-form/form-data";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { EmptyState } from "@/components/catalog-ui";
 import { InnovationReadonly } from "@/components/innovation-readonly";
@@ -14,7 +13,7 @@ import { formatDate, formatDateTime } from "@/platform/format/date";
 import { ReviewPanel } from "./review-panel";
 
 export const metadata: Metadata = {
-  title: "Tinjau Pengajuan",
+  title: "Detail Inovasi",
   robots: { index: false, follow: false },
 };
 
@@ -22,7 +21,6 @@ export default function ReviewPage({ params }: PageProps<"/admin/inovasi/[id]">)
   return (
     <main id="konten" className="flex-1">
       <div className="mx-auto max-w-[1440px] px-4 py-10 sm:px-6 lg:px-8">
-        <AdminNav current="antrean" />
         <Suspense fallback={<div className="mt-8 h-96 animate-pulse rounded-card bg-border" aria-hidden="true" />}>
           <ReviewContent params={params} />
         </Suspense>
@@ -58,7 +56,7 @@ async function ReviewContent({ params }: { params: PageProps<"/admin/inovasi/[id
   return (
     <>
       <div className="mt-6">
-        <Breadcrumb items={[{ href: "/admin", label: "Antrean verifikasi" }, { label: "Tinjau" }]} />
+        <Breadcrumb items={[{ href: "/admin/inovasi", label: "Inovasi" }, { label: "Detail" }]} />
       </div>
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
@@ -66,7 +64,7 @@ async function ReviewContent({ params }: { params: PageProps<"/admin/inovasi/[id
         <StatusBadge status={inv.status} />
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        Diajukan oleh {inv.submitter.name} ({inv.submitter.email}) · Diperbarui {formatDate(inv.updatedAt)}
+        Diinput oleh {inv.submitter.name} · Diperbarui {formatDate(inv.updatedAt)}
       </p>
 
       <div className="mt-2 grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
@@ -104,6 +102,7 @@ async function ReviewContent({ params }: { params: PageProps<"/admin/inovasi/[id
               canReview={perms.has("innovation.review")}
               canPublish={perms.has("innovation.publish")}
               canDelete={perms.has("innovation.delete_any")}
+              canEdit={perms.has("innovation.update_any")}
               isOwnSubmission={inv.submitter.id === session.user.id}
             />
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Circle, Plus, Save, Send, TriangleAlert, Trash2 } from "lucide-react";
+import { CheckCircle2, Circle, Globe, Plus, Save, Send, TriangleAlert, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/components/api-client";
@@ -77,6 +77,8 @@ export function InnovationForm({
   initial,
   refs,
   revisionNote,
+  scope = "researcher",
+  status,
 }: {
   csrf: string;
   mode: "create" | "edit";
@@ -84,8 +86,17 @@ export function InnovationForm({
   initial: FormValues;
   refs: FormRefs;
   revisionNote?: string | null;
+  /** operator: operator menginput dan menerbitkan langsung (ADR-008). researcher: alur pengajuan dosen lama (flag RESEARCHER_PORTAL). */
+  scope?: "operator" | "researcher";
+  /** Status tersimpan. Inovasi yang sudah terbit tidak punya tombol Terbitkan; perubahan langsung tampil di publik. */
+  status?: string;
 }) {
   const router = useRouter();
+  const operator = scope === "operator";
+  const alreadyPublished = operator && status === "published";
+  const apiBase = operator ? "/api/v1/admin/innovations" : "/api/v1/me/innovations";
+  const pageBase = operator ? "/admin/inovasi" : "/dosen/inovasi";
+  const searchPath = operator ? "/api/v1/admin/researchers" : "/api/v1/me/researchers";
   const [v, setV] = useState<FormValues>(initial);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<null | "save" | "submit">(null);
@@ -130,8 +141,8 @@ export function InnovationForm({
     const body = toPayload(v);
     const result =
       mode === "create" && !id
-        ? await apiRequest<{ id: string }>("POST", "/api/v1/me/innovations", { csrf, body })
-        : await apiRequest<{ id: string }>("PATCH", `/api/v1/me/innovations/${id}`, { csrf, body });
+        ? await apiRequest<{ id: string }>("POST", apiBase, { csrf, body })
+        : await apiRequest<{ id: string }>("PATCH", `${apiBase}/${id}`, { csrf, body });
     if (!result.ok) {
       showErrors(result.message, result.details);
       return null;
@@ -146,7 +157,7 @@ export function InnovationForm({
     const savedId = await persist();
     setBusy(null);
     if (savedId && mode === "create") {
-      router.replace(`/dosen/inovasi/${savedId}/edit`);
+      router.replace(`${pageBase}/${savedId}/edit`);
     } else if (savedId) {
       router.refresh();
     }
@@ -156,13 +167,15 @@ export function InnovationForm({
     setBusy("submit");
     const savedId = await persist();
     if (!savedId) return setBusy(null);
-    const result = await apiRequest("POST", `/api/v1/me/innovations/${savedId}/submit`, { csrf });
+    const result = operator
+      ? await apiRequest("POST", `${apiBase}/${savedId}/transitions`, { csrf, body: { to: "published" } })
+      : await apiRequest("POST", `${apiBase}/${savedId}/submit`, { csrf });
     if (!result.ok) {
       showErrors(result.message, result.details);
       setBusy(null);
       return;
     }
-    router.push(`/dosen/inovasi/${savedId}`);
+    router.push(`${pageBase}/${savedId}`);
     router.refresh();
   }
 
@@ -220,9 +233,8 @@ export function InnovationForm({
         <Field
           path="summary"
           label="Ringkasan"
-          required
           error={e("summary")}
-          hint="20 sampai 500 karakter. Tampil di kartu katalog, jadi tulis yang paling penting."
+          hint="Boleh dikosongkan saat draft, tetapi wajib sebelum terbit. 20 sampai 500 karakter. Tampil di kartu katalog, jadi tulis yang paling penting."
         >
           {(p) => (
             <TextArea {...p} value={v.summary} onChange={(x) => set("summary", x.target.value)} maxLength={500} rows={4} error={e("summary")} />
@@ -240,8 +252,9 @@ export function InnovationForm({
           </legend>
           {refs.categories.length === 0 ? (
             <p id={fieldId("categoryIds")} className="mt-2 text-sm text-muted-foreground">
-              Daftar kategori belum diisi oleh operator, sehingga inovasi belum dapat diajukan. Draft tetap dapat
-              disimpan.
+              {operator
+                ? "Daftar kategori masih kosong. Tambahkan dulu di menu Data acuan. Draft tetap dapat disimpan."
+                : "Daftar kategori belum diisi oleh operator, sehingga inovasi belum dapat diajukan. Draft tetap dapat disimpan."}
             </p>
           ) : (
             <div id={fieldId("categoryIds")} tabIndex={-1} className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -344,23 +357,25 @@ export function InnovationForm({
       <Section n={2} title="Tim peneliti">
         <ResearcherPicker
           inputId={fieldId("lead")}
+          searchPath={searchPath}
           label="Ketua peneliti (wajib)"
           multiple={false}
           selected={v.lead ? [v.lead] : []}
           onChange={(next) => set("lead", next[0] ?? null)}
           excludeIds={v.members.map((m) => m.id)}
           error={e("lead")}
-          hint="Biasanya Anda sendiri. Cari nama bila ketuanya orang lain."
+          hint={operator ? "Cari nama peneliti. Belum ada? Tambahkan dulu di menu Peneliti." : "Biasanya Anda sendiri. Cari nama bila ketuanya orang lain."}
         />
         <ResearcherPicker
           inputId={fieldId("members")}
+          searchPath={searchPath}
           label="Anggota tim"
           multiple
           selected={v.members}
           onChange={(next) => set("members", next)}
           excludeIds={v.lead ? [v.lead.id] : []}
           error={e("members")}
-          hint="Anggota tim dapat melihat pengajuan ini tetapi tidak dapat mengubahnya."
+          hint={operator ? "Opsional. Cari nama peneliti yang sudah ada di menu Peneliti." : "Anggota tim dapat melihat pengajuan ini tetapi tidak dapat mengubahnya."}
         />
       </Section>
 
@@ -511,8 +526,9 @@ export function InnovationForm({
             className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-control border border-primary px-5 font-semibold text-primary transition-colors hover:bg-primary-tint disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Save className="size-5" aria-hidden="true" />
-            Simpan draft
+            {alreadyPublished ? "Simpan perubahan" : "Simpan draft"}
           </button>
+          {alreadyPublished ? null : (
           <button
             type="button"
             onClick={submit}
@@ -520,13 +536,14 @@ export function InnovationForm({
             aria-describedby={missing.length > 0 ? "alasan-ajukan" : undefined}
             className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-control bg-primary px-5 font-semibold text-on-primary transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <Send className="size-5" aria-hidden="true" />
-            {busy === "submit" ? "Mengajukan…" : "Ajukan"}
+            {operator ? <Globe className="size-5" aria-hidden="true" /> : <Send className="size-5" aria-hidden="true" />}
+            {busy === "submit" ? (operator ? "Menerbitkan…" : "Mengajukan…") : operator ? "Terbitkan" : "Ajukan"}
           </button>
+          )}
         </div>
-        {missing.length > 0 ? (
+        {missing.length > 0 && !alreadyPublished ? (
           <p id="alasan-ajukan" className="basis-full text-sm text-muted-foreground">
-            Tombol Ajukan aktif setelah lengkap: {missing.map((m) => m.message.replace(/\.$/, "").toLowerCase()).join("; ")}.
+            Tombol {operator ? "Terbitkan" : "Ajukan"} aktif setelah lengkap: {missing.map((m) => m.message.replace(/\.$/, "").toLowerCase()).join("; ")}.
           </p>
         ) : null}
       </div>

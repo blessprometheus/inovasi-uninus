@@ -11,7 +11,7 @@ import { isOwnerEditable } from "@/modules/workflow/transitions";
 import { csrfTokenFor, requireSession } from "@/platform/auth/current";
 import { getInnovationService, getResearcherLookup } from "@/platform/auth/runtime";
 import { formatDate, formatDateTime } from "@/platform/format/date";
-import { loadFormRefs } from "../form-data";
+import { loadFormRefs } from "@/components/innovation-form/form-data";
 import { InnovationActions } from "./innovation-actions";
 
 export const metadata: Metadata = {

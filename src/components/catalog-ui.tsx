@@ -15,11 +15,26 @@ export function CoverPlaceholder() {
   );
 }
 
+/** Sampul gambar bila ada; bila tidak, pola netral. Rasio tetap supaya kartu tidak melompat saat gambar dimuat. */
+export function Cover({ url, alt, priority = false }: { url: string | null; alt: string | null; priority?: boolean }) {
+  if (!url) return <CoverPlaceholder />;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- Berkas sudah di-re-encode dan dilayani rute sendiri; next/image tidak menambah nilai.
+    <img
+      src={url}
+      alt={alt ?? ""}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
+      className="aspect-[16/10] w-full rounded-t-card object-cover"
+    />
+  );
+}
+
 export function InnovationCard({ item }: { item: CatalogItem }) {
   const meta = [item.leadResearcherName, item.facultyName].filter(Boolean).join(" · ");
   return (
     <article className="group relative flex flex-col rounded-card border border-border bg-surface transition-shadow focus-within:shadow-md hover:shadow-md">
-      <CoverPlaceholder />
+      <Cover url={item.coverUrl} alt={item.coverAlt} />
       <div className="flex flex-1 flex-col gap-2 p-5">
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-muted-foreground">
           {item.categoryName ? <span>{item.categoryName}</span> : null}

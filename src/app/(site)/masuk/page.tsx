@@ -6,6 +6,7 @@ import { safeNextPath } from "@/modules/auth/safe-next";
 import { getCurrentSession } from "@/platform/auth/current";
 import { isDevLoginEnabled } from "@/platform/auth/dev-login";
 import { DevLoginForm } from "./dev-login-form";
+import { PasswordLoginForm } from "./password-login-form";
 
 export const metadata: Metadata = {
   title: "Masuk",
@@ -30,28 +31,31 @@ async function LoginContent({ searchParams }: { searchParams: PageProps<"/masuk"
   const next = safeNextPath((await searchParams).next);
   if (await getCurrentSession()) redirect(next);
 
-  if (isDevLoginEnabled()) {
-    return (
-      <>
-        <p role="note" className="mt-4 flex gap-3 rounded-control bg-accent px-4 py-3 text-sm font-medium text-on-accent">
-          <TriangleAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-          <span>
-            <strong>Mode pengembangan.</strong> Halaman ini hanya muncul di komputer pengembang dan tidak ada di
-            situs sebenarnya.
-          </span>
-        </p>
-        <DevLoginForm next={next} />
-      </>
-    );
-  }
-
   return (
-    <div className="mt-4 space-y-3 text-base text-muted-foreground">
-      <p>
-        Dosen dan staf UNINUS akan masuk memakai akun SSO UNINUS (Google @uninus.ac.id). Fitur ini sedang disiapkan
-        dan belum dapat digunakan.
+    <>
+      <p className="mt-2 text-muted-foreground">
+        Khusus operator dan administrator katalog. Pengunjung tidak perlu masuk untuk menjelajahi inovasi.
       </p>
-      <p>Katalog inovasi tetap dapat dijelajahi tanpa masuk.</p>
-    </div>
+      <PasswordLoginForm next={next} />
+      <p className="mt-6 text-sm text-muted-foreground">
+        Lupa kata sandi atau belum punya akun? Hubungi administrator untuk mengatur ulang atau membuatkan akun.
+      </p>
+
+      {isDevLoginEnabled() ? (
+        <section aria-labelledby="mode-dev" className="mt-10 border-t border-border pt-6">
+          <h2 id="mode-dev" className="sr-only">
+            Masuk cepat untuk pengembangan
+          </h2>
+          <p role="note" className="flex gap-3 rounded-control bg-accent px-4 py-3 text-sm font-medium text-on-accent">
+            <TriangleAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+            <span>
+              <strong>Mode pengembangan.</strong> Bagian ini hanya muncul di komputer pengembang dan tidak ada di
+              situs sebenarnya.
+            </span>
+          </p>
+          <DevLoginForm next={next} />
+        </section>
+      ) : null}
+    </>
   );
 }
