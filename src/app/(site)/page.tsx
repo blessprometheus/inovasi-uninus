@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cacheLife, cacheTag } from "next/cache";
+import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -29,15 +30,25 @@ export default function HomePage() {
   return (
     <main id="konten" className="flex-1">
       <JsonLd data={websiteJsonLd(getSiteUrl())} />
-      <section className="bg-surface">
-        <div className="mx-auto max-w-[1200px] px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+      <section className="relative isolate overflow-hidden bg-neutral-900 text-white">
+        <Image
+          src="/brand/hero-kampus.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="-z-20 object-cover object-center"
+        />
+        {/* Lapisan gelap menjaga kontras teks (WCAG AA) di atas foto yang terang. */}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/80 via-black/60 to-black/30" aria-hidden="true" />
+        <div className="mx-auto max-w-[1200px] px-4 py-20 sm:px-6 sm:py-32 lg:px-8">
           <p className="mb-4 inline-block rounded-control bg-accent px-3 py-1 text-sm font-semibold text-on-accent">
             Universitas Islam Nusantara
           </p>
           <h1 className="max-w-3xl text-balance text-[2rem] font-extrabold leading-tight tracking-tight sm:text-5xl sm:leading-[1.1]">
             Inovasi dan Karya untuk Masa Depan
           </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
+          <p className="mt-4 max-w-2xl text-lg text-white/90">
             Katalog hasil penelitian dan inovasi dosen UNINUS, terbuka bagi masyarakat, industri,
             dan pemerintah yang ingin berkolaborasi.
           </p>
